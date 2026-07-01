@@ -48,22 +48,41 @@ curl -fsSL https://opencode.ai/install | bash
 | **Heavy** (15-30h/week) | Free + $20 paid | $20 |
 | **Full-time** (40h+/week) | Free + $50 paid | $50 |
 
-## Models Covered
+## Tested Free Models (OpenRouter)
 
-### Free Models (OpenRouter)
-- DeepSeek-V4-Flash Free (primary)
-- Nemotron 3 Ultra Free (reviews)
-- OpenAI GPT-OSS-120B Free (alternative)
+**Last tested**: 2026-06-30
 
-### Paid Models (Budget)
-- DeepSeek-V4-Flash ($0.09/$0.18 per MTok)
-- MiMo-V2.5 ($0.10/$0.28 per MTok)
-- Qwen3-Coder-Flash ($0.20/$0.97 per MTok)
+| Model | Status | Speed | Notes |
+|-------|--------|-------|-------|
+| **nvidia/nemotron-3-ultra-550b-a55b:free** | ✅ **WORKS** | 3.5s | Best free model, 1M context |
+| **nvidia/nemotron-3-super-120b-a12b:free** | ✅ **WORKS** | 3.2s | Fast, reliable, 1M context |
+| **google/gemma-4-26b-a4b-it:free** | ✅ **WORKS** | 5.2s | Google, 262K context |
+| deepseek/deepseek-v4-flash:free | ❌ **404** | — | **No longer free!** |
+| qwen/qwen3-coder:free | ❌ 429 | — | Rate limited |
+| openai/gpt-oss-120b:free | ❌ 429 | — | Rate limited |
+| meta-llama/llama-3.3-70b-instruct:free | ❌ 429 | — | Rate limited |
+| google/gemma-4-31b-it:free | ❌ 429 | — | Rate limited |
 
-### Premium Models
-- DeepSeek-V4-Pro ($0.435/$0.87 per MTok)
-- DeepSeek-V4-Pro-DSpark (speculative decoding, same price)
-- Claude Opus 4.7 ($5/$25 per MTok)
+**Recommendation**: Use `nvidia/nemotron-3-ultra-550b-a55b:free` as primary model.
+
+## Paid Models (Budget)
+
+| Model | Input/M | Output/M | Context | Best For |
+|-------|---------|----------|---------|----------|
+| DeepSeek-V4-Flash | $0.14 | $0.28 | 1M | Cheapest paid |
+| MiMo-V2.5 | $0.10 | $0.28 | 1M | Best value |
+| Qwen3-Coder-Flash | $0.20 | $0.97 | 1M | Code specialist |
+| DeepSeek-V4-Pro | $0.435 | $0.87 | 1M | Frontier quality |
+| Gemini 3 Flash Preview | $0.50 | $3.00 | 1M | Google quality |
+| Gemini 3.1 Flash Lite | $0.25 | $1.50 | 1M | Cheap Gemini |
+
+## Premium Models
+
+| Model | Input/M | Output/M | Notes |
+|-------|---------|----------|-------|
+| DeepSeek-V4-Pro-DSpark | $0.435 | $0.87 | Speculative decoding, faster |
+| Claude Opus 4.7 | $5.00 | $25.00 | Top-tier reasoning |
+| GPT-5.5 | $5.00 | $30.00 | Latest OpenAI |
 
 ## Token Compression Techniques
 
@@ -73,6 +92,18 @@ curl -fsSL https://opencode.ai/install | bash
 4. **Model cascading** — try free → cheap → premium
 5. **Batch similar tasks** — combine multiple fixes into one request
 6. **Local pre-processing** — use Ollama for simple tasks
+
+## Agent Configuration
+
+The `opencode.json` config provides:
+- **Plan/Build agents**: `nvidia/nemotron-3-ultra-550b-a55b:free` (primary)
+- **@phase-review**: Cross-model review with different free model
+- **@pr-review**: Code review with build verification
+- **@verify**: Runs build/lint/test before approving work
+- **@security-review**: Security-focused audit
+- **@test-writer**: Writes comprehensive tests
+- **@docs-writer**: Generates documentation
+- **@debug**: Investigates bugs without modifying code
 
 ## License
 
