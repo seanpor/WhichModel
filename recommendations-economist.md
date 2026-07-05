@@ -308,27 +308,35 @@ All four are free, open-source, and work with Claude Code, Codex, Cursor, Gemini
 
 The tools above save tokens. Your choice of AI *tool* and *provider* determines how much those tokens cost.
 
-**AI coding tools — cost-relevant features:**
+**AI coding tools — scored comparison (1-5, higher is better):**
 
-| Tool | Model choice | Cost control | Key advantage |
-|------|-------------|--------------|---------------|
-| **Claude Code** | Claude only | Max subscription or API | Best agent quality, highest cost |
-| **Codex** | GPT only | Plus/Pro subscription | Strong coding, good value |
-| **Cursor** | Any model | Tab-completion uses small models | Auto-complete is cheap; agent calls are expensive |
-| **Cline** | Any model, any provider | You pay per API call | Full control over model and cost per task |
-| **OpenCode** | Any model, any provider | Free models built in | Open-source, agent-based, free tier available |
-| **Gemini CLI** | Gemini only | Free tier generous | Good for Google ecosystem |
+| Tool | Cost control | Model flexibility | Agent quality | Free tier | Ease of use | Effectiveness |
+|------|:---:|:---:|:---:|:---:|:---:|:---:|
+| **OpenCode** | 5 | 5 | 4 | 5 | 3 | **4.4** |
+| **Cline** | 5 | 5 | 3 | 5 | 3 | **4.2** |
+| **Gemini CLI** | 4 | 1 | 3 | 5 | 5 | **3.6** |
+| **Cursor** | 2 | 4 | 4 | 3 | 5 | **3.6** |
+| **Codex** | 3 | 1 | 4 | 2 | 5 | **3.0** |
+| **Claude Code** | 1 | 1 | 5 | 1 | 5 | **2.6** |
+
+**How to read this table.** Cost control: can you pick cheap models? Model flexibility: how many providers can you use? Agent quality: how well does it code? Free tier: can you use it for nothing? Ease of use: how much setup does it need?
+
+OpenCode and Cline score highest because they let you use any model from any provider, including free ones. Claude Code scores lowest on cost despite having the best agent quality — you are locked into Anthropic's pricing.
+
+**Provider aggregators — scored comparison (1-5, higher is better):**
+
+| Provider | Price | Free tier | Model selection | Reliability | Ease of use | Effectiveness |
+|----------|:---:|:---:|:---:|:---:|:---:|:---:|
+| **OpenRouter** | 5 | 4 | 5 | 5 | 5 | **4.8** |
+| **9Router** | 5 | 5 | 4 | 4 | 4 | **4.4** |
+| **Google Vertex** | 4 | 5 | 3 | 5 | 3 | **4.0** |
+| **Kiro AI** | 5 | 5 | 3 | 2 | 4 | **3.8** |
+
+**How to read this table.** Price: cost per token. Free tier: how much can you use for nothing? Model selection: how many models are available? Reliability: uptime and consistency. Ease of use: setup complexity.
+
+OpenRouter scores highest because it has the widest model selection, transparent pricing, and the most reliable infrastructure. 9Router scores well on price and free tier but adds a proxy layer that can break. Kiro AI offers free Claude but may not last — free tiers from startups are inherently unreliable.
 
 **The cost trap:** Cursor's tab-completion uses small, cheap models and costs little. But its agent mode (Ctrl+K, chat) uses the same expensive models as Claude Code. Most developers burn money on the agent, not the autocomplete.
-
-**Provider aggregators — transparent pricing:**
-
-| Provider | Models | Free tier | Key advantage |
-|----------|--------|-----------|---------------|
-| **OpenRouter** | 400+ models | 25+ free models, 50 req/day | Cheapest paid models (DeepSeek-V4-Flash at USD 0.09/MTok) |
-| **9Router** | 40+ providers | Kiro (free Claude), OpenCode Free | Auto-fallback between providers |
-| **Google Vertex** | Gemini, GLM, DeepSeek | USD 300 free credits | Best free tier for heavy usage |
-| **Kiro AI** | Claude, GLM, MiniMax | Unlimited free | Free Claude access (may not last) |
 
 **The provider trap:** Subscriptions (Claude Pro, Cursor Pro) give you a fixed quota that expires. Pay-as-you-go (OpenRouter, 9Router) gives you tokens that roll over and cost less per unit. For heavy users, pay-as-you-go is almost always cheaper.
 
