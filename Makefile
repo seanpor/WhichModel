@@ -11,6 +11,8 @@ $(PDF_OUTPUT): $(PDF_INPUT)
 		-f markdown \
 		-t pdf \
 		--pdf-engine=pdflatex \
+		--toc \
+		--toc-depth=2 \
 		-V geometry:margin=1in \
 		-V fontsize=11pt \
 		-V mainfont="Latin Modern Roman" \
