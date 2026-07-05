@@ -20,7 +20,7 @@ $(PDF_OUTPUT): $(PDF_INPUT)
 		-V colorlinks=true \
 		-V linkcolor=blue \
 		-V urlcolor=blue \
-		-V header-includes='\usepackage{fancyhdr}\usepackage{booktabs}\usepackage{longtable}\pagestyle{fancy}\fancyhead[L]{AI Coding Cost Optimisation}\fancyhead[R]{\today}\fancyfoot[C]{}' \
+		-V header-includes='\usepackage{fancyhdr}\usepackage{booktabs}\usepackage{longtable}\pagestyle{fancy}\fancyhead[L]{AI Coding Cost Optimisation}\fancyhead[R]{\today}\fancyfoot[C]{\thepage}' \
 		-o $@
 	@echo "  Generated: $@"
 
