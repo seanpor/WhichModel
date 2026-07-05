@@ -8,14 +8,16 @@
 
 ## Executive summary
 
-1. **Use free models for 80 per cent of work.** Reserve paid models for architecture, security, and production.
-2. **Enable prompt caching.** Keep static content at the start of every prompt. Do not rearrange it between sessions.
-3. **Send only what matters.** Use `@file` references. Be specific about line numbers. Omit unchanged code.
-4. **Batch related work.** One request for three bugs, not three requests for one bug each.
-5. **Set up Open Brain.** Forty-five minutes of setup saves 15-40 minutes per day of context reloading.
-6. **Adopt model cascading.** Free first, paid only on failure.
-7. **Use structured output.** JSON mode cuts parsing tokens by 30-50 per cent.
-8. **Specialise agents.** Different models for planning, coding, and reviewing.
+1. **Install RTK.** One command, 60-90 per cent savings on tool output tokens. Biggest single win.
+2. **Install Caveman.** One command, 65 per cent savings on agent output tokens.
+3. **Install Ponytail.** One command, 54 per cent less code generated.
+4. **Use free models for 80 per cent of work.** Reserve paid models for architecture, security, and production.
+5. **Enable prompt caching.** Keep static content at the start of every prompt. Do not rearrange it between sessions.
+6. **Send only what matters.** Use `@file` references. Be specific about line numbers. Omit unchanged code.
+7. **Batch related work.** One request for three bugs, not three requests for one bug each.
+8. **Set up Open Brain.** Forty-five minutes of setup saves 15-40 minutes per day of context reloading.
+9. **Adopt model cascading.** Free first, paid only on failure.
+10. **Use 9Router.** Automatic provider fallback, built-in compression, never stop coding.
 
 Total monthly cost: EUR 15-20. Previous spending: USD 100-300. The tools are free. The discipline is not.
 
@@ -240,6 +242,67 @@ Use the Chromebook for mobile work with free API models. Use the desktop for off
 5. **Capture:** Store decisions, patterns, and debugging notes in Open Brain for next time.
 
 Per-feature cost drops from USD 5-20 to effectively zero.
+
+---
+
+## Tools that do the work for you
+
+The techniques above are habits. These tools automate them. They are ordered by impact: the first saves the most tokens for the least effort.
+
+### Priority 1: RTK — compress tool output (68,000 GitHub stars)
+
+Every `git diff`, `grep`, `ls`, and test runner dumps raw output into the LLM context. RTK intercepts these commands and compresses the output before it reaches the model. In a typical 30-minute session, it cuts input tokens by 80 per cent.
+
+It is a single Rust binary with zero dependencies. Install it, run `rtk init -g`, and restart your AI tool. Every shell command is then silently rewritten to its compressed equivalent. `git push` returns "ok main" instead of 15 lines of progress output. `cargo test` shows only failures instead of 200 lines of passing tests.
+
+**Savings:** 60-90 per cent on input tokens from tool output. **Cost:** Zero. **Effort:** One command to install.
+
+```bash
+brew install rtk && rtk init -g
+```
+
+### Priority 2: Caveman — compress agent output (84,000 GitHub stars)
+
+RTK compresses what goes *into* the model. Caveman compresses what comes *out*. It injects a prompt that makes the agent reply in terse fragments instead of verbose prose. The same technical answer, 65 per cent fewer output tokens.
+
+Install once, and every session starts in caveman mode. Turn it off with "normal mode" if you need full prose for a complex explanation.
+
+**Savings:** 65 per cent on output tokens. **Cost:** Zero. **Effort:** One command to install.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.sh | bash
+```
+
+### Priority 3: Ponytail — write less code (74,000 GitHub stars)
+
+Caveman makes the agent *talk* less. Ponytail makes it *write* less code. It injects a "lazy senior dev" ruleset: before writing code, the agent checks whether a stdlib function, a native HTML element, or an existing dependency already does the job. The result is 54 per cent fewer lines of code on average, with no loss of safety.
+
+Where Caveman is about output tokens, Ponytail is about code volume. The two stack: Caveman compresses the prose around the code, Ponytail compresses the code itself.
+
+**Savings:** 54 per cent fewer lines of code, 20 per cent cheaper. **Cost:** Zero. **Effort:** One command to install.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/DietrichGebert/ponytail/main/install.sh | bash
+```
+
+### Priority 4: 9Router — smart provider routing (19,000 GitHub stars)
+
+9Router is a local proxy that sits between your AI tool and your providers. It routes requests through a 3-tier fallback: subscription models first, then cheap paid models, then free models. If your Claude Code quota runs out mid-session, it silently switches to a free provider without interrupting your work.
+
+It also includes RTK compression built in, plus optional "Caveman mode" and "Ponytail mode" — so it can run all three tools through a single proxy.
+
+**Savings:** Automatic fallback prevents downtime; built-in compression saves 20-40 per cent. **Cost:** Zero. **Effort:** `npm install -g 9router && 9router`.
+
+### How they stack
+
+| Tool | What it compresses | Savings | Effort |
+|------|-------------------|---------|--------|
+| RTK | Tool output (git, grep, tests) | 60-90 per cent input | One command |
+| Caveman | Agent prose | 65 per cent output | One command |
+| Ponytail | Code volume | 54 per cent fewer lines | One command |
+| 9Router | Provider routing + all above | 20-40 per cent + fallback | One command |
+
+All four are free, open-source, and work with Claude Code, Codex, Cursor, Gemini CLI, OpenCode, and 30 other agents. Install all four for maximum effect.
 
 ---
 
