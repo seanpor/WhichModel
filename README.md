@@ -16,10 +16,19 @@ This repository contains:
 |------|---------|
 | `model-analysis.md` | Detailed model comparison (pricing, benchmarks, free vs paid) |
 | `recommendations.md` | Cost optimization strategies and machine-specific setup |
+| `recommendations-economist.md` | Concise PDF-ready recommendations (Economist style) |
 | `AGENTS.md` | Global agent protocol for all projects |
 | `templates/phase-doc-template.md` | Template for project phase documents |
 | `templates/AGENTS-template.md` | Generic agent protocol template |
 | `examples/` | Reference examples from specific projects |
+| `phases/` | Project phase documents (numbered sequentially) |
+| `open-brain/` | Open Brain setup scripts and SQL |
+
+## Phase Documents
+
+| Phase | Title | Status | Description |
+|-------|-------|--------|-------------|
+| 001 | Open Brain & AI Memory Systems | Draft | Analysis of OB1 and similar projects for productivity improvement |
 
 ## Quick Start
 
@@ -37,6 +46,18 @@ ollama pull qwen2.5-coder:7b
 curl -fsSL https://opencode.ai/install | bash
 /opencode
 /connect  # Select OpenRouter, paste API key
+```
+
+### Generate PDF Recommendations
+```bash
+make pdf    # Generates recommendations.pdf
+make lint   # Check spelling and links
+```
+
+### Set Up Open Brain (AI Memory Layer)
+```bash
+cd open-brain
+make setup  # Interactive setup script
 ```
 
 ## Cost Strategy

@@ -1,6 +1,6 @@
-# Phase {{NUMBER}}: {{TITLE}}
+# {{TITLE}}
 
-**Status**: Draft | In Review | Approved | In Progress | Complete
+**Status**: managed in `docs/phases/manifest.yaml` (do not include here)
 **Author**: {{MODEL_NAME}}
 **Date**: {{DATE}}
 **Reviewed by**: (pending)
