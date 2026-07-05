@@ -10,7 +10,7 @@ $(PDF_OUTPUT): $(PDF_INPUT)
 	pandoc $< \
 		-f markdown \
 		-t pdf \
-		--pdf-engine=pdflatex \
+		--pdf-engine=lualatex \
 		--toc \
 		--toc-depth=2 \
 		-V geometry:margin=1in \
@@ -20,7 +20,7 @@ $(PDF_OUTPUT): $(PDF_INPUT)
 		-V colorlinks=true \
 		-V linkcolor=blue \
 		-V urlcolor=blue \
-		-V header-includes='\usepackage{fancyhdr}\usepackage{booktabs}\usepackage{longtable}\pagestyle{fancy}\fancyhead[L]{AI Coding Cost Optimisation}\fancyhead[R]{\thepage}\fancyfoot[C]{}' \
+		-V header-includes='\usepackage{fancyhdr}\usepackage{booktabs}\usepackage{longtable}\pagestyle{fancy}\fancyhead[L]{AI Coding Cost Optimisation}\fancyhead[R]{\today}\fancyfoot[C]{}' \
 		-o $@
 	@echo "  Generated: $@"
 
