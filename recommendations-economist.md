@@ -304,6 +304,36 @@ It also includes RTK compression built in, plus optional "Caveman mode" and "Pon
 
 All four are free, open-source, and work with Claude Code, Codex, Cursor, Gemini CLI, OpenCode, and 30 other agents. Install all four for maximum effect.
 
+### Choosing your AI tool and provider
+
+The tools above save tokens. Your choice of AI *tool* and *provider* determines how much those tokens cost.
+
+**AI coding tools — cost-relevant features:**
+
+| Tool | Model choice | Cost control | Key advantage |
+|------|-------------|--------------|---------------|
+| **Claude Code** | Claude only | Max subscription or API | Best agent quality, highest cost |
+| **Codex** | GPT only | Plus/Pro subscription | Strong coding, good value |
+| **Cursor** | Any model | Tab-completion uses small models | Auto-complete is cheap; agent calls are expensive |
+| **Cline** | Any model, any provider | You pay per API call | Full control over model and cost per task |
+| **OpenCode** | Any model, any provider | Free models built in | Open-source, agent-based, free tier available |
+| **Gemini CLI** | Gemini only | Free tier generous | Good for Google ecosystem |
+
+**The cost trap:** Cursor's tab-completion uses small, cheap models and costs little. But its agent mode (Ctrl+K, chat) uses the same expensive models as Claude Code. Most developers burn money on the agent, not the autocomplete.
+
+**Provider aggregators — transparent pricing:**
+
+| Provider | Models | Free tier | Key advantage |
+|----------|--------|-----------|---------------|
+| **OpenRouter** | 400+ models | 25+ free models, 50 req/day | Cheapest paid models (DeepSeek-V4-Flash at USD 0.09/MTok) |
+| **9Router** | 40+ providers | Kiro (free Claude), OpenCode Free | Auto-fallback between providers |
+| **Google Vertex** | Gemini, GLM, DeepSeek | USD 300 free credits | Best free tier for heavy usage |
+| **Kiro AI** | Claude, GLM, MiniMax | Unlimited free | Free Claude access (may not last) |
+
+**The provider trap:** Subscriptions (Claude Pro, Cursor Pro) give you a fixed quota that expires. Pay-as-you-go (OpenRouter, 9Router) gives you tokens that roll over and cost less per unit. For heavy users, pay-as-you-go is almost always cheaper.
+
+**Recommendation:** Use OpenCode or Cline as your tool (free, any model), OpenRouter as your provider (cheapest paid, best free selection), and 9Router as your router (auto-fallback). This combination gives you maximum control over cost with zero subscription lock-in.
+
 ---
 
 ## What else to consider
