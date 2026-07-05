@@ -6,6 +6,12 @@
 
 ---
 
+## Summary
+
+Most developers overspend on AI coding by 5-10x. They use expensive models for trivial tasks, send entire codebases when they need one file, and pay for verbose output that adds no value. Four free, open-source tools — RTK, Caveman, Ponytail, and 9Router — fix this automatically. Installed in five minutes, they compress tool output by 60-90 per cent, agent prose by 65 per cent, and code volume by 54 per cent. Combined with free models from OpenRouter, the monthly cost drops from USD 100-300 to EUR 15-20. The quality does not suffer. The discipline does not change. The tools do the work.
+
+---
+
 ## Executive summary
 
 1. **Install RTK.** One command, 60-90 per cent savings on tool output tokens. Biggest single win.
