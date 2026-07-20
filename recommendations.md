@@ -1,14 +1,21 @@
 # Recommendations
 
-Last updated: 2026-07-20 (see correction note below; original analysis 2026-06-29)
+Last updated: 2026-07-20, corrected twice same day (see notes below; original analysis 2026-06-29)
 
 > **⚠️ Correction, verified 2026-07-20:** The "80% free" budget strategy this document
 > originally opened with relied on `deepseek/deepseek-v4-flash:free`, which is **no longer
 > served by any provider on OpenRouter** (confirmed via the live `GET /v1/models` API — 14
-> `:free` models currently served, DeepSeek not among them). Separately, free models have been
-> confirmed too weak for the actual work this budget is meant to support — see the widened
-> quality-gap analysis in `model-analysis.md`. The strategy below is revised accordingly. Full
-> policy and rationale: `phases/phase-002-model-consolidation-token-efficiency.md`.
+> `:free` models currently served, DeepSeek not among them).
+>
+> **⚠️ Corrected again, same day (later):** The first correction went further and concluded
+> free models generally "aren't capable enough" for this workload — that was an
+> overgeneralisation from one dead model to an entire category. Sean's own production OpenCode
+> config runs `plan`/`build` on `nvidia/nemotron-3-ultra-550b-a55b:free`, working. Large
+> flagship free models (that one, plus OpenCode Zen's Big Pickle — SWE-bench ~72%, and
+> `deepseek-v4-flash-free`, which is still live on Zen even though the equivalent OpenRouter
+> listing died) are legitimate primaries. The document below reflects this: **free-first
+> primary, paid only as a confirmed-need escalation**, not the reverse. Full policy and
+> rationale: `phases/phase-002-model-consolidation-token-efficiency.md`.
 
 ## Current Setup
 
@@ -16,27 +23,29 @@ Last updated: 2026-07-20 (see correction note below; original analysis 2026-06-2
 - OpenRouter: $5 balance
 - Local: 2080 Ti (11GB VRAM) available for Ollama
 
-## Budget Strategy — revised (was "Free Models (80% of work)")
+## Budget Strategy — revised twice (was "Free Models (80% of work)")
 
-### Primary: One fixed, capable paid model
-- Subscription-anchored: Claude Pro + Claude Code, or
-- API-only: **DeepSeek-V4-Pro** (`deepseek/deepseek-v4-pro`) — $0.435/$0.87 per MTok
+### Primary: a large, confirmed-live free model
+- **Nemotron 3 Ultra 550B** (`nvidia/nemotron-3-ultra-550b-a55b:free`, OpenRouter) — already confirmed working in production
+- Or OpenCode Zen's **Big Pickle** (`big-pickle`) or **DeepSeek V4 Flash Free** (`deepseek-v4-flash-free`) — both confirmed live via direct API check 2026-07-20
 - Same model for planning, coding, and verification, in one session — never switched mid-conversation (prompt caches are model-scoped; a switch re-prices the whole context)
+- Verify liveness before committing — free rosters rotate; `deepseek/deepseek-v4-flash:free` on OpenRouter is the cautionary example
 
-### Escalation (exception only, on hard failure — not a routine tier)
-- Same family as primary, one step up (e.g. DeepSeek-V4-Pro → a frontier DeepSeek/MiMo model, or Claude Sonnet → Opus 4.8)
-- Triggered only by a build/lint/test failure after one same-model retry, always in a fresh session
+### Escalation (exception only, on confirmed rate-limit exhaustion or a specific task failure — not a routine tier)
+- **DeepSeek-V4-Pro** (`deepseek/deepseek-v4-pro`) — $0.435/$0.87 per MTok, or **Kimi-K2.7-code** — $0.85/$3.80 per MTok, or a Claude subscription/API tier for frontier reasoning
+- Triggered only by a build/lint/test failure after one same-model retry, or by hitting OpenRouter's free-tier caps (20 req/min, 50-1,000/day) — always in a fresh session
 
 ### Reviews (free, own session — no cache to lose here)
-- **Nemotron 3 Ultra Free** (`nvidia/nemotron-3-ultra-550b-a55b:free`, confirmed live 2026-07-20) — cross-model review for phase docs and PRs
+- **Nemotron 3 Ultra Free** (`nvidia/nemotron-3-ultra-550b-a55b:free`, confirmed live 2026-07-20) — cross-model review for phase docs and PRs, a different model from the primary even when the primary is also free
 
 ## Cost Comparison
 
 | Approach | $/month | Hours of heavy use | Notes |
 |----------|---------|-------------------|-------|
 | MiMo Code ($50/38B) | $50 | ~21.6 hours | Burns fast, opaque credits |
-| OpenRouter DeepSeek-V4-Pro (paid, API-only lane) | ~$60-150 | Usage-scaled | Realistic with caching + RTK/Ponytail compression |
-| Claude Pro (subscription-anchored lane) | ~€24-35 | Quota-bound, stretched by compression stack | Recommended when work needs frontier capability |
+| Free primary (Nemotron 3 Ultra 550B, or Zen's Big Pickle/DeepSeek Flash Free) | $0 | Rate-limited by provider, not by quality | Track rate-limit hits for two weeks before assuming you need to pay for anything |
+| OpenRouter DeepSeek-V4-Pro (paid escalation, as-needed) | ~$60-150 at full usage | Usage-scaled | Only for the fraction of work the free primary can't cover |
+| Claude Pro (subscription escalation, as-needed) | ~€24-35 | Quota-bound, stretched by compression stack | Only relevant if you specifically want frontier Claude-tier reasoning |
 
 ## MiMo Code Credit-to-Token Conversion
 
@@ -52,9 +61,10 @@ Effective cost per MTok (MiMo Code $50/38B):
 
 ## Recommendation
 
-**Pick one lane and one primary model — see `recommendations-economist.md` for the full lane
-decision.** Free models are no longer a viable primary at this usage level; keep them for the
-review-gate role only. Never switch models inside a session.
+**Confirm your free primary is a large, currently-live model — it likely already is.** Keep
+paid tiers (subscription or API) as an escalation reserve, not a default lane. Never switch
+models inside a session. See `recommendations-economist.md` → "Picking a primary" for the
+full reasoning.
 
 **Keep MiMo Code** only for cache-heavy repeated work (if you have credits left).
 
@@ -131,16 +141,16 @@ Create `.opencode/opencode.json` in any project root to customize:
 | DeepSeek-V4-Flash (paid) | $1.22 | $6.10 | $134.20 |
 | Free models | $0.00 | $0.00 | $0.00 |
 
-### Recommendation by Usage — revised 2026-07-20
+### Recommendation by Usage — revised 2026-07-20, corrected again same day
 
-Free models are reserved for the review-gate role at every usage tier now, not as a primary —
-see the correction at the top of this document. Budget scales with the primary model choice
-(subscription vs API) more than with hours/week:
+A large free model (Nemotron 3 Ultra 550B, Big Pickle) is a legitimate primary at every usage
+tier — see the correction at the top of this document. The real variable is whether the
+provider's rate limits bind at your volume, which is a thing to measure, not assume:
 
-- **Light user** (< 5h/week): Subscription-anchored primary comfortably covers this; free review model at $0.
-- **Medium user** (5-15h/week): Same — subscription quota should hold with the compression stack installed.
-- **Heavy user** (15-30h/week): Track rate-limit hits; may need the API-only lane for part of the month.
-- **Full-time / Power user** (your rate, 40h+/week): API-only lane on a mid-tier paid model (e.g. DeepSeek-V4-Pro) is more predictable than stretching a subscription quota — see the lane decision in `recommendations-economist.md`.
+- **Light user** (< 5h/week): Free primary comfortably covers this; OpenRouter's caps (20 req/min, 50-1,000/day) are very unlikely to bind.
+- **Medium user** (5-15h/week): Same — likely still fine on a free primary.
+- **Heavy user** (15-30h/week): Track rate-limit hits for two weeks; may need a paid escalation tier for part of the month if caps bind.
+- **Full-time / Power user** (your rate, 40h+/week): Most likely to hit provider rate limits. If it does bind, a paid escalation tier (DeepSeek-V4-Pro via API, or a Claude subscription) covers the overflow — see "Picking a primary" in `recommendations-economist.md`. Don't assume this in advance; confirm it first.
 
 ---
 
@@ -204,26 +214,27 @@ see the correction at the top of this document. Budget scales with the primary m
 
 **Total per feature**: 50-100K tokens = $5-20 per feature (at premium model rates)
 
-### Optimized Workflow — revised 2026-07-20 (was "90% Cheaper" on all-free models)
+### Optimized Workflow — revised 2026-07-20, corrected again same day (was "90% Cheaper" on all-free models)
 
-The all-free version below relied on `deepseek-v4-flash:free` (now dead) and on free models
-being capable enough for planning and implementation (confirmed they aren't, at this workload).
-The real savings come from compression and caching discipline on a fixed paid primary, not
-from routing the whole loop to $0 models:
+The original all-free version relied specifically on `deepseek-v4-flash:free` (now dead on
+OpenRouter — but a similar model, `deepseek-v4-flash-free`, is still live on OpenCode Zen).
+The intermediate correction wrongly concluded free models generally aren't capable enough for
+planning and implementation — Sean's own production config disproves that. Corrected version:
+still mostly free, on a large confirmed-live model, with compression stacked on top:
 
 ```
-1. Primary model writes detailed plan (10-20K tokens) — same session throughout
-2. Free review-gate model (Nemotron 3 Ultra Free) reviews the plan, in its own session → $0
-3. Primary model implements (20-50K tokens), same session as the plan
+1. Free primary (Nemotron 3 Ultra 550B, or Zen's Big Pickle) writes detailed plan (10-20K tokens) — same session throughout
+2. Free review-gate model (Nemotron 3 Ultra Free — a different model) reviews the plan, in its own session → $0
+3. Free primary implements (20-50K tokens), same session as the plan
 4. Free review-gate model reviews the implementation, own session → $0
 ```
 
-**Total per feature**: 50-90K tokens on the primary model, reduced 50-90% by RTK/Caveman/Ponytail;
-plan and code review add $0 on the free review-gate model.
+**Total per feature**: 50-90K tokens on the free primary, reduced 50-90% by RTK/Caveman/Ponytail;
+everything above costs $0.
 
-**Escalation (exception only, on hard failure — not a routine step)**:
-- Same family, one step up: DeepSeek-V4-Pro ($0.435/$0.87 per MTok) for architecture or security work
-- Frontier tier for the hardest problems: MiMo-V2.5-Pro ($0.43/$0.87 per MTok) or Claude Opus 4.8
+**Escalation (exception only, on confirmed rate-limit exhaustion or a specific task the free primary can't handle — not a routine step)**:
+- DeepSeek-V4-Pro ($0.435/$0.87 per MTok) for architecture or security work the free primary struggled with
+- Frontier tier for the hardest problems: MiMo-V2.5-Pro ($0.43/$0.87 per MTok), Kimi-K2.7-code ($0.85/$3.80 per MTok, no free tier exists for Kimi), or Claude Opus 4.8
 - Always a fresh session, never a live switch — see "Escalation, not cascading" in `recommendations-economist.md`
 
 ### Token Compression Setup
@@ -382,7 +393,7 @@ Before each request, check:
    ```
    Press Tab to switch to Plan agent, type a question
 
-**Daily budget**: budget varies by lane — see the lane decision in `recommendations-economist.md` (~€1-2/day subscription-anchored, more on API-only)
+**Daily budget**: $0 if your free primary (Nemotron 3 Ultra 550B, or Zen's Big Pickle) covers the day within rate limits — the likely case; escalate to paid only if you hit a specific limit or task failure, see "Picking a primary" in `recommendations-economist.md`
 
 ### i9-9900K / 2080 Ti Desktop
 
@@ -445,14 +456,15 @@ Before each request, check:
 | Setup | Monthly Cost | Tokens | Offline | Privacy |
 |-------|-------------|--------|---------|---------|
 | **Your current workflow** | $100-300 | Limited | ❌ | ❌ |
-| **Subscription-anchored (Claude Pro + compression)** | €24-35 | Quota-bound, stretched by RTK/Caveman/Ponytail | ❌ | ❌ |
-| **API-only (DeepSeek-V4-Pro primary)** | €55-135 | Usage-scaled | ❌ | ❌ |
+| **Free primary (Nemotron 3 Ultra 550B, or Zen's Big Pickle/DeepSeek Flash Free)** | €0 | Rate-limited by provider, not by quality | ❌ | ❌ |
+| **Paid escalation reserve (as-needed, subscription or API)** | €24-135, only for the fraction that needs it | Usage-scaled | ❌ | ❌ |
 | **Desktop (local Ollama)** | ~€13 electricity | Unlimited | ✅ | ✅ |
-| **Dual machine (optimized)** | €13 + primary lane cost | Unlimited | ✅ (Desktop) | Partial |
+| **Dual machine (optimized)** | €13 + escalation cost if any | Unlimited | ✅ (Desktop) | Partial |
 
-**Recommendation (revised 2026-07-20)**: Free models are no longer capable enough to be the
-primary — pick one lane (subscription-anchored or API-only, see `recommendations-economist.md`),
-compress aggressively, and reserve free models for the review-gate role.
+**Recommendation (revised 2026-07-20, corrected again same day)**: A large free model is a
+legitimate primary (see `recommendations-economist.md` → "Picking a primary") — compress
+aggressively with RTK/Caveman/Ponytail to stretch rate limits, track rate-limit hits for two
+weeks, and reserve a paid tier for whatever fraction of work the free primary can't handle.
 
 ---
 
@@ -528,16 +540,16 @@ enough for this workload. Free models remain useful for cross-model review, not 
    ```
    Press Tab to switch to Plan agent, type a question
 
-#### Recommended Workflow (Chromebook) — revised 2026-07-20
+#### Recommended Workflow (Chromebook) — revised 2026-07-20, corrected again same day
 
 | Task | Model | Cost | Why |
 |------|-------|------|-----|
-| **Primary coding + planning** | Your fixed primary (see the lane decision) | subscription or ~$0.44/$0.87 per MTok (DeepSeek-V4-Pro) | Same model for both, one session, no cache loss |
-| **Reviews** | Nemotron 3 Ultra Free | $0 | Cross-model review, own session |
-| **Escalation** | Next model up, same family | higher | Hard-failure exception only, fresh session |
+| **Primary coding + planning** | Nemotron 3 Ultra 550B (`nvidia/nemotron-3-ultra-550b-a55b:free`) | $0 | Same model for both, one session, no cache loss — confirmed working in production |
+| **Reviews** | Nemotron 3 Ultra Free (own session, different from the primary session) | $0 | Cross-model review |
+| **Escalation** | DeepSeek-V4-Pro or similar, paid | ~$0.44/$0.87 per MTok | Only on confirmed rate-limit exhaustion or a task the free primary can't handle — fresh session |
 
-**Daily budget**: ~€1-2/day subscription-anchored, more on API-only — free models are no
-longer a viable primary here, see the correction at the top of this document
+**Daily budget**: $0 in the common case — free models are a legitimate primary here (see the
+correction at the top of this document); escalate to paid only as needed
 
 #### Chromebook Limitations
 
@@ -605,20 +617,21 @@ longer a viable primary here, see the correction at the top of this document
    }
    ```
 
-#### Recommended Workflow (Desktop) — revised 2026-07-20
+#### Recommended Workflow (Desktop) — revised 2026-07-20, corrected again same day
 
-Local 7B-class models are further from frontier capability than even the now-dead free cloud
-models (see the `-20-30% vs Opus` gap in the Local Ollama table below) — not a viable primary
-for real work. Use them only for the narrow offline/simple tasks they're actually good at.
+Local 7B-class models are further from frontier capability than the large free *cloud* models
+(see the `-20-30% vs Opus` gap in the Local Ollama table below) — that comparison is about
+local vs cloud, not free vs paid, and still holds. Use local models only for the narrow
+offline/simple tasks they're actually good at; use a large free cloud model for real coding.
 
 | Task | Model | Cost | Why |
 |------|-------|------|-----|
-| **Primary coding + planning** | Your fixed primary (see the lane decision) | subscription or ~$0.44/$0.87 per MTok (DeepSeek-V4-Pro) | One model, one session |
+| **Primary coding + planning** | Nemotron 3 Ultra 550B (cloud, `nvidia/nemotron-3-ultra-550b-a55b:free`) | $0 | One model, one session — confirmed working in production |
 | **Simple/offline formatting, boilerplate** | Ollama Qwen 2.5 Coder 7B | $0 (electricity) | Fast, offline — bounded to tasks that don't need frontier quality |
-| **Reviews** | Nemotron 3 Ultra Free (cloud, `nvidia/nemotron-3-ultra-550b-a55b:free`) | $0 | Cross-model review, own session |
-| **Escalation** | Next model up, same family | higher | Hard-failure exception only, fresh session |
+| **Reviews** | Nemotron 3 Ultra Free (own session, different from the primary session) | $0 | Cross-model review |
+| **Escalation** | DeepSeek-V4-Pro or similar, paid | ~$0.44/$0.87 per MTok | Only on confirmed rate-limit exhaustion or a task the free primary can't handle — fresh session |
 
-**Daily budget**: ~€1-2/day subscription-anchored, more on API-only; electricity (~€0.60/day) on top for local tasks
+**Daily budget**: $0, plus electricity (~€0.60/day) for local tasks; paid escalation only as needed
 
 #### Desktop Advantages
 
@@ -651,21 +664,21 @@ for real work. Use them only for the narrow offline/simple tasks they're actuall
 
 ---
 
-## Dual-Machine Strategy — revised 2026-07-20
+## Dual-Machine Strategy — revised 2026-07-20, corrected again same day
 
-Use both machines against the same fixed primary model, so switching machines never means
+Use both machines against the same free primary model, so switching machines never means
 switching models mid-workflow:
 
 | Task | Chromebook | Desktop | Why |
 |------|------------|---------|-----|
-| **Primary coding + planning** | Your fixed primary (API) | Same primary (API), or subscription if using Claude Code | Same model on both — no behavioural drift when you switch machines |
-| **Reviews** | Nemotron 3 Ultra Free (API) | Nemotron 3 Ultra Free (API) | Cross-model review, own session, either machine |
+| **Primary coding + planning** | Nemotron 3 Ultra 550B (API, free) | Same (API, free) | Same model on both — no behavioural drift when you switch machines, confirmed working in production |
+| **Reviews** | Nemotron 3 Ultra Free (API), own session | Same, own session | Cross-model review, either machine |
 | **Simple/offline tasks** | Not possible — no local GPU | Local Ollama (Qwen 2.5 Coder 7B) | Desktop-only advantage; bounded to tasks that don't need frontier quality |
-| **Escalation** | Next model up, same family | Same | Hard-failure exception only, fresh session |
+| **Escalation** | DeepSeek-V4-Pro or similar, paid | Same | Only on confirmed rate-limit exhaustion or a task the free primary can't handle — fresh session |
 
-**Combined cost**: primary lane cost (see the lane decision in `recommendations-economist.md`)
-plus ~€13/month desktop electricity if using local Ollama for simple tasks. No longer
-$0-10/month — that figure assumed a free-model primary that is no longer viable.
+**Combined cost**: $0 for the primary and review roles, plus ~€13/month desktop electricity if
+using local Ollama for simple tasks, plus whatever paid escalation you actually end up using
+(track it — don't assume it in advance).
 
 ---
 
@@ -717,15 +730,15 @@ opencode
 
 | Setup | Monthly Cost | Tokens | Offline | Privacy |
 |-------|-------------|--------|---------|---------|
-| **Chromebook (API-only, fixed paid primary)** | €55-135 | Usage-scaled | ❌ | ❌ (API) |
+| **Chromebook (large free cloud primary, e.g. Nemotron 3 Ultra 550B)** | €0, escalation only as needed | Rate-limited by provider | ❌ | ❌ (API) |
 | **Desktop (Local only)** | ~€13 electricity | Unlimited, quality-capped | ✅ | ✅ |
-| **Desktop (Local + API primary)** | €13 + primary lane cost | Unlimited | ✅ | Partial |
-| **Dual machine** | €13 + primary lane cost | Unlimited | ✅ (Desktop) | Partial |
-| **Subscription-anchored (Claude Pro)** | €24-35 | Quota-bound, stretched by compression | ❌ | ❌ |
+| **Desktop (Local + free cloud primary)** | €13 + escalation cost if any | Unlimited | ✅ | Partial |
+| **Dual machine** | €13 + escalation cost if any | Unlimited | ✅ (Desktop) | Partial |
+| **Paid escalation reserve (subscription or API)** | €24-135, only for the fraction that needs it | Usage-scaled | ❌ | ❌ |
 
-**Recommendation (revised 2026-07-20)**: Local Ollama models (7B-class on an 11GB card) are
-further from frontier capability than even the free cloud models — see the `-20-30% vs Opus`
-gap in the Local Ollama table above — so treat local models as a formatting/simple-refactor
-helper, not a primary for 80% of work. Pick one of the two lanes in `recommendations-economist.md`
-for the primary; use the desktop's local models only for the narrow tasks they're actually
-good at.
+**Recommendation (revised 2026-07-20, corrected again same day)**: Local Ollama models
+(7B-class on an 11GB card) are further from frontier capability than the large free *cloud*
+models — see the `-20-30% vs Opus` gap in the Local Ollama table above — so treat local models
+as a formatting/simple-refactor helper, not a primary. A large free cloud model (Nemotron 3
+Ultra 550B, OpenCode Zen's Big Pickle) is the primary; reserve paid tiers for confirmed
+rate-limit exhaustion or a specific task the free primary can't handle.

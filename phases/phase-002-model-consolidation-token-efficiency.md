@@ -180,6 +180,127 @@ compression stack is installed.
 - https://github.com/rtk-ai/rtk — RTK
 - https://github.com/juliusbrussee/caveman — Caveman (see README for current installer)
 - https://github.com/DietrichGebert/ponytail — Ponytail
-- https://github.com/decolua/9router — 9Router (~1.8k stars)
+- https://github.com/decolua/9router — 9Router (23k stars — corrected in the addendum below;
+  the ~1.8k figure above was itself an error, sourced from a stale web-search summary rather
+  than the GitHub API)
 - Claude API pricing and prompt-cache economics: Anthropic docs via claude-api skill,
   2026-07-19 (Sonnet 5 intro pricing runs through 2026-08-31)
+
+---
+
+## Addendum 2026-07-20: Correction — capability, not free-vs-paid, is the real axis
+
+**Trigger.** After the R4 doc edits were applied and committed (see the repo's git log,
+commit `172c09e`), Sean's live `~/.config/opencode/opencode.json` was inspected as part of
+answering "what's next". It showed `plan` and `build` — the actual implementation agents —
+both bound to `nvidia/nemotron-3-ultra-550b-a55b:free`, a free model, and working. Sean's
+response to being asked whether to move these to a paid lane: *"There are plenty of very
+capable free models on openrouter"* — followed by a request to also check OpenCode Zen's
+"Big Pickle" and OpenRouter's Kimi 2.7+ family. This directly contradicts the F2/A3
+conclusion above ("free models don't meet the capability bar") and the R2 lane decision built
+on it. That conclusion **overgeneralized** from one dead model (`deepseek-v4-flash:free`) to
+an entire category ("free"). It was wrong to do that, and this addendum corrects it.
+
+### New findings (2026-07-20, later same day)
+
+**F5. Nemotron 3 Ultra 550B (free, OpenRouter) is already a working primary.** 550B MoE,
+confirmed live (F-check from the R4 pass), and Sean has been running it as both `plan` and
+`build` in production. No evidence it's inadequate for his actual workload — the earlier
+claim that it was rested on a benchmark comparison (Code Elo 1174 vs paid 1318, see A3/quality
+gap tables) that measures relative standing against other models, not an absolute capability
+threshold. A 10-25% benchmark gap does not mean "not capable enough" — that inference was
+mine, not evidenced.
+
+**F6. Big Pickle (OpenCode Zen) is a frontier-tier free model.** Stealth/promotional model,
+free (no credit card, indefinite promotional period as of July 2026 per multiple
+independently-corroborating sources), **SWE-bench ~72%**, 200K context. This is a genuinely
+strong coding benchmark — competitive with many paid frontier models. Confirmed present in
+Zen's live model list (see F7). Sources:
+https://www.ayautomate.com/free-models/opencode-zen-big-pickle ,
+https://grokipedia.com/page/Big_Pickle_model .
+
+**F7. OpenCode Zen has its own confirmed-live free roster, independent of OpenRouter.**
+Direct API check against `https://opencode.ai/zen/v1/models` (2026-07-20) returns, among
+others, five explicitly `-free`-suffixed models: `deepseek-v4-flash-free`, `mimo-v2.5-free`,
+`hy3-free`, `nemotron-3-ultra-free`, `north-mini-code-free`, plus `big-pickle` (free per F6
+despite no `-free` suffix in its ID). **`deepseek-v4-flash-free` is live and funded on Zen even
+though the equivalent OpenRouter `:free` listing is dead (F1)** — these are different products
+with different provider funding, not the same fact checked twice. Do not assume OpenRouter
+dead-model findings transfer to Zen, or vice versa.
+
+Zen also lists frontier paid models (`claude-opus-4-8`, `gpt-5.6-sol`, `gemini-3.1-pro`,
+`grok-4.5`, etc.) — the `/models` endpoint doesn't expose pricing, so paid/free status for
+non-suffixed IDs beyond Big Pickle isn't API-verifiable from this call alone.
+
+**F7a. Unverified, flag before relying on it: a third-party source claims OpenCode Zen's free
+tier grants "100 requests/day with access to all Zen models"** — i.e., possibly including
+frontier paid models like Claude Opus, not just the `-free`-suffixed ones. This would be a
+materially different (much better) offer than anything else surveyed, but it comes from an
+SEO-style blog aggregator, not Zen's own docs or an API response, and the R4 pass already
+caught one instance of a similarly-sourced claim (9Router's star count) being wrong. **Sean
+should confirm this directly in his Zen account/dashboard before it's treated as a planning
+input.** If true, it changes the primary-model calculus again.
+
+**F8. No free Kimi tier exists anywhere, confirmed on both platforms.** OpenRouter: 8
+Kimi/Moonshot IDs (`kimi-k2` through `kimi-k3`), all paid, cheapest `kimi-k2.7-code` at
+$0.85/$3.80 per MTok. OpenCode Zen: `kimi-k2.7-code`, `kimi-k2.6`, `kimi-k2.5` present in the
+model list, none `-free`-suffixed. If Kimi is wanted, it's an escalation/paid-tier option, not
+a free primary candidate.
+
+### Revised analysis
+
+**A4. The failure mode was "routed to a dead/weak specific model," not "routed to free."**
+F1 (the dead DeepSeek listing) was a real, narrow bug. F2 (OpenRouter free-tier rate limits:
+20 RPM, 50-1,000 req/day) is a real, narrow constraint — but it's a *rate-limit* problem, not
+a *capability* problem, and it's specific to OpenRouter's marketplace model (many small
+third-party-funded model slots) rather than to "free" in general. Zen's promotional models
+(F6, F7) don't advertise the same per-minute caps in anything surveyed here, though the
+overall daily allowance needs confirming (F7a). The corrected model: **capability and
+rate-limit headroom are properties of the specific model and provider you pick, not of
+whether money changes hands.** Large flagship free models (Nemotron 3 Ultra 550B, Big Pickle,
+Zen's `deepseek-v4-flash-free`) are legitimate primaries. Small/weak free models (Gemma 26B,
+the surviving Llama/Qwen remnants) are not, regardless of price.
+
+**A5. The "lane decision" (R2) was the wrong frame.** It posed subscription-anchored vs
+API-only as if paid were the baseline and free the exception. The corrected frame: **start
+with the largest capable free model you can get (already true in Sean's live config) and
+escalate to paid only when a specific task demonstrably needs it, or when a specific
+provider's rate limits bind at your actual usage volume** — which is an empirical question
+(track rate-limit hits, per the original verification plan) rather than an assumption to
+build a budget around in advance.
+
+### Revised recommendations
+
+**R1′ (replaces R1).** Primary: the largest confirmed-live free model available —
+`nvidia/nemotron-3-ultra-550b-a55b:free` (OpenRouter, already configured) or `big-pickle` /
+`deepseek-v4-flash-free` (OpenCode Zen) are all reasonable choices; picking between them is a
+quality/taste call for Sean, not something this doc should force. Review gate: unchanged,
+Nemotron 3 Ultra Free in its own session. Escalation (exception only, on hard failure or
+confirmed rate-limit exhaustion): DeepSeek-V4-Pro or Kimi-K2.7-code (both confirmed paid-only,
+reasonably priced) or a Claude subscription if already held.
+
+**R2′ (replaces R2, the "lane decision").** Drop the forced subscription-vs-API framing.
+Instead: keep the existing OpenRouter free-primary setup, add OpenCode Zen's free roster
+(F7) as a second free option to try — particularly Big Pickle given its SWE-bench figure —
+and track rate-limit hits for two weeks (this survives from the original verification plan
+below) to see whether F2's caps actually bind at Sean's usage rate before spending anything
+on a paid or subscription primary. Cancel the Google subscription regardless — it has no role
+under either the old or corrected framing.
+
+**R4′.** The doc edits already applied under R4 (commit `172c09e`) need a follow-up pass:
+soften every "free models aren't capable enough" claim in `recommendations-economist.md`,
+`recommendations.md`, and `model-analysis.md` to the corrected A4/A5 framing; add Big Pickle
+and Zen's free roster to the free-model tables; add Kimi as a confirmed paid-only escalation
+option; revise or remove the lane-decision budget figures that assumed a forced paid primary.
+
+### Live config correction applied
+
+Sean's `~/.config/opencode/opencode.json` had three dead model IDs configured
+(`openai/gpt-oss-120b:free`, `meta-llama/llama-3.3-70b-instruct:free`, `qwen/qwen3-coder:free`
+— all confirmed dead in the R4 OpenRouter check), including `docs-writer` actively bound to
+the first. Fixed 2026-07-20: dead IDs removed from the provider allowlist,
+`openai/gpt-oss-120b:free` replaced with its live successor `openai/gpt-oss-20b:free`
+(including in `docs-writer`'s binding). Backup written to
+`~/.config/opencode/opencode.json.bak-2026-07-20` (the directory isn't under git). `plan` and
+`build` were **not** changed — per this addendum, Nemotron 3 Ultra 550B is a legitimate
+primary and the earlier plan to move them to a paid model was itself the error.

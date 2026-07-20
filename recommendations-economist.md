@@ -8,7 +8,7 @@
 
 ## Summary
 
-Most developers overspend on AI coding by 5-10x. They use expensive models for trivial tasks, send entire codebases when they need one file, and pay for verbose output that adds no value. Four free, open-source tools — RTK, Caveman, Ponytail, and 9Router — fix this automatically. Installed in five minutes, they compress tool output by 60-90 per cent, agent prose by 65 per cent, and code volume by 54 per cent. Combined with a fixed, capable primary model instead of a free-tier chase, the monthly cost drops from USD 100-300 to EUR 24-35 on a subscription-anchored lane. The quality does not suffer. The discipline does not change. The tools do the work.
+Most developers overspend on AI coding by 5-10x. They use expensive models for trivial tasks, send entire codebases when they need one file, and pay for verbose output that adds no value. Four free, open-source tools — RTK, Caveman, Ponytail, and 9Router — fix this automatically. Installed in five minutes, they compress tool output by 60-90 per cent, agent prose by 65 per cent, and code volume by 54 per cent. Combined with a properly-chosen model as your fixed primary — free or paid, the choice is about capability and rate-limit headroom, not price — the monthly cost drops from USD 100-300 to as low as EUR 0-15 if a large free model (Nemotron 3 Ultra 550B, Big Pickle) covers your workload, or EUR 24-135 if you need a paid escalation tier. The quality does not suffer. The discipline does not change. The tools do the work.
 
 ---
 
@@ -17,15 +17,15 @@ Most developers overspend on AI coding by 5-10x. They use expensive models for t
 1. **Install RTK.** One command, 60-90 per cent savings on tool output tokens. Biggest single win.
 2. **Install Caveman.** One command, 65 per cent savings on agent output tokens.
 3. **Install Ponytail.** One command, 54 per cent less code generated.
-4. **Run one capable paid model as your primary.** Free models are not reliably capable enough for demanding work — compress aggressively instead of chasing free tiers. See "Choosing your AI tool and provider" for the lane decision.
+4. **Pick one properly capable model as your primary — free or paid.** The axis that matters is model size and rate-limit headroom, not price: a large flagship free model (Nemotron 3 Ultra 550B on OpenRouter, Big Pickle or `deepseek-v4-flash-free` on OpenCode Zen) is a legitimate primary. A small or weak free model is not, regardless of cost. Verify whichever you pick is actually still served before committing to it — see "Choosing your AI tool and provider".
 5. **Enable prompt caching.** Keep static content at the start of every prompt. Do not rearrange it between sessions. Never switch models mid-session — caches are model-scoped, so a switch re-prices your entire accumulated context.
 6. **Send only what matters.** Use `@file` references. Be specific about line numbers. Omit unchanged code.
 7. **Batch related work.** One request for three bugs, not three requests for one bug each.
 8. **Set up Open Brain.** Forty-five minutes of setup saves 15-40 minutes per day of context reloading.
-9. **Escalate on hard failure only, never mid-session.** One retry on the same model, then a fresh session on the next model up. Escalation is an exception path, not a default cascade.
+9. **Escalate on hard failure or confirmed rate-limit exhaustion only, never mid-session.** One retry on the same model, then a fresh session on a paid escalation model. Escalation is an exception path, not a default cascade — and not something to assume in advance.
 10. **Use 9Router only if you need multi-provider fallback.** Under a fixed model policy its routing value shrinks and its bundled compression duplicates RTK.
 
-Total monthly cost: EUR 24-35 on a subscription-anchored lane, or EUR 55-135 on an API-only lane — see the lane decision below. Previous spending: USD 100-300. The tools are free. The discipline is not.
+Total monthly cost: EUR 0-15 if a free primary covers your workload (track rate-limit hits for two weeks before assuming it doesn't), rising to EUR 24-135 only if you need a paid escalation tier or hit provider rate limits at volume. Previous spending: USD 100-300. The tools are free. The discipline is not.
 
 ---
 
@@ -100,8 +100,9 @@ Model cascading — routing every request through a ladder of free, then cheap, 
 
 **The rule:** stay on your primary model for the whole session. On a hard failure, retry once on the same model — most failures are one-off mistakes, not capability gaps. If that also fails, start a **fresh session** on the escalation model with a written summary of what was tried. Never switch models mid-conversation.
 
-**Escalation targets (same model family as your primary, to minimise behavioural drift):**
-- DeepSeek family: DeepSeek-V4-Flash (USD 0.09/0.18 per MTok, paid — the `:free` listing is no longer served by any provider) → DeepSeek-V4-Pro (USD 0.435/0.87 per MTok) for harder architecture or security work.
+**Escalation targets.** Your primary can be free (Nemotron 3 Ultra 550B, Big Pickle, `deepseek-v4-flash-free`) or paid — escalation is about going *up* from wherever you are, not about crossing a free/paid line by default:
+- From a free primary: DeepSeek-V4-Pro (USD 0.435/0.87 per MTok) or Kimi-K2.7-code (USD 0.85/3.80 per MTok) for a specific task the free model demonstrably struggled with.
+- DeepSeek family, if already paid: DeepSeek-V4-Flash (USD 0.09/0.18 per MTok — the `:free` listing is no longer served by any provider) → DeepSeek-V4-Pro (USD 0.435/0.87 per MTok) for harder architecture or security work.
 - Claude family: Sonnet (subscription, or USD 2/10 per MTok introductory API pricing through 2026-08-31) → Opus 4.8 (USD 5/25 per MTok) for the hardest problems.
 
 ### 6. Failure detection
@@ -189,10 +190,10 @@ Different models have different strengths — but switching models mid-session c
 
 | Role | Model | Why |
 |------|-------|-----|
-| Planning | Your primary (see the lane decision) | Same model as implementation — no cache loss between planning and building within one session |
+| Planning | Your primary — free or paid (see "Choosing your AI tool and provider") | Same model as implementation — no cache loss between planning and building within one session |
 | Coding | Your primary | Consistency matters more than per-task optimality here |
-| Reviews | Nemotron 3 Ultra Free (`nvidia/nemotron-3-ultra-550b-a55b:free`, confirmed live July 2026) | Different architecture, catches different bugs. Runs in its own review-gate session, so there's no cache to lose |
-| Escalation | Next model up in the same family (see "Escalation, not cascading") | Behavioural continuity; reserved for hard-failure exceptions |
+| Reviews | Nemotron 3 Ultra Free (`nvidia/nemotron-3-ultra-550b-a55b:free`, confirmed live July 2026) — a different model from your primary even if your primary is also free | Different architecture, catches different bugs. Runs in its own review-gate session, so there's no cache to lose |
+| Escalation | A paid model, one step up in capability (see "Escalation, not cascading") | Reserved for a specific task the primary demonstrably struggled with, or confirmed rate-limit exhaustion |
 
 Cross-model review is not optional. It catches semantic errors that same-model review misses. Keep it to a dedicated review-gate session, not a live switch.
 
@@ -253,7 +254,7 @@ Use the Chromebook for mobile work with free API models. Use the desktop for off
 5. **Review:** The free review-gate model (Nemotron 3 Ultra Free) reviews the diff in its own session — cross-model review with no cache to lose.
 6. **Capture:** Store decisions, patterns, and debugging notes in Open Brain for next time.
 
-Per-feature cost is dominated by the primary model's token usage — see the token-efficiency stack above and the lane decision below for how to keep that low.
+Per-feature cost is dominated by the primary model's token usage — see the token-efficiency stack above and "Picking a primary" below for how to keep that low, or at zero.
 
 ---
 
@@ -354,20 +355,21 @@ OpenCode and Cline score highest because they let you use any model from any pro
 
 **How to read this table.** Price: cost per token. Free tier: how much can you use for nothing? Model selection: how many models are available? Reliability: uptime and consistency. Ease of use: setup complexity.
 
-OpenRouter scores highest because it has the widest model selection, transparent pricing, and the most reliable infrastructure. 9Router scores well on price and free tier but adds a proxy layer that can break. Kiro AI offers free Claude but may not last — free tiers from startups are inherently unreliable.
+OpenRouter scores highest because it has the widest model selection, transparent pricing, and the most reliable infrastructure. 9Router scores well on price and free tier but adds a proxy layer that can break. Kiro AI offers free Claude but may not last — free tiers from startups are inherently unreliable. **OpenCode Zen** (opencode.ai/zen) is a fourth option not scored above — it has its own free roster independent of OpenRouter's (`big-pickle`, `deepseek-v4-flash-free`, `nemotron-3-ultra-free`, `mimo-v2.5-free`, `hy3-free`, `north-mini-code-free`, confirmed live July 2026), including Big Pickle, a frontier-tier stealth model (SWE-bench ~72%, 200K context) currently free. One claim about Zen's free tier — that it grants limited daily access to its full paid catalogue, not just the `-free`-suffixed models — comes from third-party blogs, not Zen's own docs; confirm it in your own Zen account before relying on it.
 
 **The cost trap:** Cursor's tab-completion uses small, cheap models and costs little. But its agent mode (Ctrl+K, chat) uses the same expensive models as Claude Code. Most developers burn money on the agent, not the autocomplete.
 
-**The provider trap:** Subscriptions (Claude Pro, Cursor Pro) give you a fixed quota that expires. Pay-as-you-go (OpenRouter, 9Router) gives you tokens that roll over and cost less per unit. For heavy users needing only mid-tier capability, pay-as-you-go is usually cheaper. **This flips if your work requires frontier-model capability** — see the lane decision below.
+**The provider trap:** Subscriptions (Claude Pro, Cursor Pro) give you a fixed quota that expires. Pay-as-you-go (OpenRouter, 9Router) gives you tokens that roll over and cost less per unit. A large free model removes this trade-off entirely for as long as it stays capable and within rate limits — see below.
 
-**The lane decision.** Free models are not reliably capable enough for demanding work, and per-token API pricing on a frontier model (e.g. Claude Sonnet at USD 2-3 / 10-15 per MTok) is not viable at a heavy-user token rate. Two coherent options:
+**Picking a primary: capability and rate limits, not price.** An earlier version of this report argued that free models aren't capable enough and forced a choice between a paid subscription and paid API access. That was wrong — it generalised from one dead model listing to an entire category. The corrected approach:
 
-- **Subscription-anchored (recommended when you need frontier capability):** Claude Pro (~EUR 24/month) or equivalent, with the compression stack (RTK + Caveman + Ponytail) stretching the rate-limit window 3-5x. Estimated cost: EUR 24-35/month. The risk is that the quota still binds at heavy usage even after compression — track rate-limit hits for two weeks before committing.
-- **API-only (recommended when mid-tier capability suffices):** OpenCode or Cline plus a mid-tier paid model (e.g. DeepSeek-V4-Pro) via OpenRouter, no subscription. Estimated cost: EUR 55-135/month at a heavy usage rate, before compression savings.
+- **Start with the largest free model you can get**, and verify it's actually still served before committing: Nemotron 3 Ultra 550B (`nvidia/nemotron-3-ultra-550b-a55b:free`, OpenRouter) or Big Pickle / `deepseek-v4-flash-free` (OpenCode Zen) are all reasonable starting points. Cost: EUR 0, aside from the electricity/time already sunk.
+- **Track two things for two weeks before assuming you need to pay for anything:** whether the model's *quality* actually falls short on real tasks, and whether the provider's *rate limits* bind at your usage volume (OpenRouter free tier: 20 requests/minute, 50-1,000/day depending on lifetime spend — confirm Zen's limits directly, per the caveat above).
+- **Escalate only where one of those two things is confirmed**, and only for the tasks that need it — not as a blanket switch of your primary. A paid escalation tier (DeepSeek-V4-Pro at USD 0.435/0.87 per MTok, Kimi-K2.7-code at USD 0.85/3.80 per MTok, or a Claude subscription/API tier if you want frontier reasoning) costs EUR 24-135/month depending on the option and how much of your work actually needs it — see "Escalation, not cascading" above.
 
-Do not run both lanes at once — that doubles subscriptions and reintroduces the mid-session switching this report argues against.
+Do not run a paid subscription and a paid API primary at the same time — that's double-paying for a problem a free primary may not even have.
 
-**Recommendation:** Pick one lane and one primary model. Use Claude Code as your tool if you choose the subscription-anchored lane (best agent quality, per the table above); use OpenCode or Cline if you choose the API-only lane (free, any model). Either way, use OpenRouter as your provider for anything outside the subscription, and treat 9Router as optional — install it only if you specifically need automatic fallback across providers.
+**Recommendation:** Confirm your current free primary is a large, capable, currently-live model (it likely already is). Use OpenCode or Cline as your tool — both give you full model flexibility, including free ones, without locking you into one provider's pricing. Use OpenRouter and/or OpenCode Zen as your provider(s), and treat 9Router as optional — install it only if you specifically need automatic fallback across providers. Reserve a paid tier and Claude Code specifically for the (hopefully rare) cases where a specific task needs frontier-level reasoning the free primary doesn't deliver.
 
 ---
 
@@ -383,8 +385,8 @@ Do not run both lanes at once — that doubles subscriptions and reintroduces th
 
 **Prompt templates.** Write reusable prompts for common tasks: code review, bug fix, test generation, plan writing. Store them in your project. A good template saves 20-30 tokens per request and produces more consistent output.
 
-**Monitor your spending.** Check your OpenRouter dashboard (or Claude Console) weekly against the lane budget you picked — EUR 24-35/month subscription-anchored, EUR 55-135/month API-only. If you're consistently over budget, check first whether you're switching models mid-session (the single biggest silent cost) before assuming you need a cheaper primary.
+**Monitor your spending.** Check your OpenRouter dashboard (and Zen account, and Claude Console if applicable) weekly. If you're spending anything at all on a paid tier, check first whether you're switching models mid-session (the single biggest silent cost) or escalating out of habit rather than need, before assuming your free primary needs replacing.
 
 ---
 
-*Sources: OpenRouter pricing and rate limits (verified July 2026), Anthropic API pricing (July 2026), MiMo Code credit documentation, independent model benchmarks (LiveCodeBench, Coding Index, Agentic Index). Benchmark figures are approximate and sourced from public leaderboards at time of writing. Costs are in the currency quoted by each provider; EUR 1 is approximately USD 1.10 at time of writing. Updated 2026-07-20: corrected the DeepSeek-V4-Flash free listing (no longer served by any provider — see `phases/phase-002-model-consolidation-token-efficiency.md`), the Caveman install command, and the 9Router star count; reframed model cascading as an escalation exception rather than a default workflow.*
+*Sources: OpenRouter pricing and rate limits (verified July 2026), OpenCode Zen model list (verified live via API, July 2026), Anthropic API pricing (July 2026), MiMo Code credit documentation, independent model benchmarks (LiveCodeBench, Coding Index, Agentic Index). Benchmark figures are approximate and sourced from public leaderboards at time of writing. Costs are in the currency quoted by each provider; EUR 1 is approximately USD 1.10 at time of writing. Updated 2026-07-20: corrected the DeepSeek-V4-Flash free listing (no longer served on OpenRouter — see `phases/phase-002-model-consolidation-token-efficiency.md`), the Caveman install command, and the 9Router star count; reframed model cascading as an escalation exception rather than a default workflow. Updated again 2026-07-20 (later): corrected an overgeneralisation from the first update — a dead free model does not mean free models generally aren't capable enough. Large flagship free models (Nemotron 3 Ultra 550B, OpenCode Zen's Big Pickle) are legitimate primaries; the earlier forced subscription-vs-API "lane decision" is replaced with a capability/rate-limit-driven approach. See the phase doc's addendum for the full correction and sourcing.*

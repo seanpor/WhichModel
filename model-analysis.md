@@ -93,38 +93,49 @@ Effective cost per MTok (MiMo Code $50/38B):
 
 ## Free Models Available (No Cost)
 
-> **⚠️ Correction, verified 2026-07-20:** `deepseek/deepseek-v4-flash:free` — the primary
-> recommendation throughout the original version of this document — is **no longer served by
-> any provider on OpenRouter**. Confirmed by fetching the live OpenRouter model list
-> (`GET /v1/models`, 14 `:free` models returned, DeepSeek not among them). Roughly half of the
-> other free models named below have also rotated out since this doc was first written — see
-> the corrected table. **Given Sean's stated constraint that free models aren't capable enough
-> for his real work, treat this whole section as a source for the review-gate role only, not
-> as a primary-model candidate.**
+> **⚠️ Correction, verified 2026-07-20, then corrected again 2026-07-20 (later):** The first
+> pass here found `deepseek/deepseek-v4-flash:free` dead on OpenRouter and concluded that free
+> models generally "aren't capable enough" for real work. That conclusion overgeneralised from
+> one dead listing to an entire category, and Sean's own production OpenCode config
+> (`plan`/`build` both bound to `nvidia/nemotron-3-ultra-550b-a55b:free`, working) is direct
+> evidence against it. The corrected view: **the failure mode was a dead or small/weak
+> specific model, not "free" as a category.** Large flagship free models — Nemotron 3 Ultra
+> 550B (OpenRouter), Big Pickle and `deepseek-v4-flash-free` (OpenCode Zen, verified live via
+> direct API call below) — are legitimate primaries. Small free models (Gemma 26B, the
+> surviving Llama/Qwen remnants) are not, regardless of price. See
+> `phases/phase-002-model-consolidation-token-efficiency.md` for the full correction.
 
 ### OpenCode Zen (opencode.ai/zen)
 
-*Not independently re-verified — OpenCode Zen has no public model-list API to check against
-(unlike OpenRouter). Given the OpenRouter finding above, treat "DeepSeek V4 Flash Free" here
-with the same skepticism until confirmed live in the OpenCode Zen dashboard.*
+**Re-verified live 2026-07-20** via direct API call to `GET https://opencode.ai/zen/v1/models`
+(the endpoint the first pass couldn't find). Confirms five explicitly `-free`-suffixed models
+plus Big Pickle:
 
-| Model | Notes |
-|-------|-------|
-| Big Pickle | Stealth model, possibly GLM mixture. Free "for limited time". Data may be used for training. |
-| DeepSeek V4 Flash Free | **Unverified — likely dead, see correction above.** Data may be used for training. |
-| MiMo-V2.5 Free | Promotional. |
-| North Mini Code Free | Cohere-based. Data retained. Do NOT submit confidential data. |
-| Nemotron 3 Ultra Free | NVIDIA trial. Data logged for improvement. |
+| Model | ID (live API) | Notes |
+|-------|----|-------|
+| Big Pickle | `big-pickle` | **Confirmed live**, no `-free` suffix in its ID but free per multiple corroborating sources (promotional, indefinite as of July 2026). **Frontier-tier**: SWE-bench ~72%, 200K context — a genuinely strong coding benchmark, competitive with paid models. Stealth model, possibly GLM mixture. Data may be used for training during the promotional period. |
+| DeepSeek V4 Flash Free | `deepseek-v4-flash-free` | **Confirmed live on Zen**, even though the equivalent OpenRouter `:free` listing is dead — different platforms, different provider funding. Data may be used for training. |
+| MiMo-V2.5 Free | `mimo-v2.5-free` | **Confirmed live.** Promotional. |
+| North Mini Code Free | `north-mini-code-free` | **Confirmed live.** Cohere-based. Data retained. Do NOT submit confidential data. |
+| Nemotron 3 Ultra Free | `nemotron-3-ultra-free` | **Confirmed live.** NVIDIA trial. Data logged for improvement. |
+| Hunyuan 3 Free | `hy3-free` | **New, not in the original list.** Confirmed live on both Zen and OpenRouter (`tencent/hy3:free`). |
+
+**Unverified, flag before relying on it:** third-party blogs claim Zen's free tier grants
+"100 requests/day with access to all Zen models" — i.e. possibly including frontier paid
+models like Claude Opus, not just the `-free`-suffixed ones above. The `/models` endpoint
+doesn't expose pricing, so this isn't API-verifiable from here. Confirm directly in the Zen
+dashboard before treating it as a planning input — if true, it's a materially better offer
+than anything else in this document.
 
 ### OpenRouter (openrouter.ai)
 
 **Re-verified live 2026-07-20** against `GET https://openrouter.ai/api/v1/models` — 14 `:free`
 models currently served (down from the 26 this section originally claimed; many code-focused
-models have rotated out). Confirmed-live free models, best for coding/review:
+models have rotated out). Confirmed-live free models:
 
 | Model | ID | Context | Notes |
 |-------|----|---------|-------|
-| Nemotron 3 Ultra 550B | `nvidia/nemotron-3-ultra-550b-a55b:free` | 1M | **Confirmed live.** Strong general reasoning — recommended for the review-gate role |
+| Nemotron 3 Ultra 550B | `nvidia/nemotron-3-ultra-550b-a55b:free` | 1M | **Confirmed live, confirmed working in production** (Sean's `plan`/`build` agents). Strong general reasoning — viable as a primary, not just for review |
 | Nemotron 3 Super 120B | `nvidia/nemotron-3-super-120b-a12b:free` | 1M | **Confirmed live.** Large context |
 | Gemma 4 31B | `google/gemma-4-31b-it:free` | 262K | **Confirmed live.** Google, good quality |
 | Gemma 4 26B | `google/gemma-4-26b-a4b-it:free` | 262K | **Confirmed live.** Google, efficient |
@@ -132,12 +143,20 @@ models have rotated out). Confirmed-live free models, best for coding/review:
 | Poolside Laguna XS 2.1 | `poolside/laguna-xs-2.1:free` | 262K | **Confirmed live**, but ID changed from the `laguna-xs.2:free` this doc originally listed |
 | Cohere North Mini Code | `cohere/north-mini-code:free` | 256K | **Confirmed live.** Code-focused |
 | OpenAI gpt-oss-20b | `openai/gpt-oss-20b:free` | 131K | **Confirmed live**, but replaces the `gpt-oss-120b:free` this doc originally listed — smaller model, re-evaluate quality before relying on it |
+| Tencent Hunyuan 3 | `tencent/hy3:free` | — | **New, confirmed live.** Not previously catalogued |
 
 **No longer served (confirmed dead 2026-07-20):** `deepseek/deepseek-v4-flash:free`,
 `qwen/qwen3-coder:free`, `qwen/qwen3-next-80b-a3b-instruct:free`,
 `nousresearch/hermes-3-llama-3.1-405b:free`, `meta-llama/llama-3.3-70b-instruct:free`,
 `openai/gpt-oss-120b:free`. Do not route work to these IDs — requests will fail or silently
 fall back to a different model than intended.
+
+### Kimi / Moonshot — confirmed no free tier anywhere
+
+Checked both platforms 2026-07-20: OpenRouter has 8 Kimi/Moonshot IDs (`kimi-k2` through
+`kimi-k3`), all paid, cheapest `moonshotai/kimi-k2.7-code` at $0.85/$3.80 per MTok. OpenCode
+Zen lists `kimi-k2.7-code`, `kimi-k2.6`, `kimi-k2.5` — none `-free`-suffixed. If Kimi is
+wanted, it's an escalation/paid option, not a free primary candidate.
 
 ---
 
@@ -301,30 +320,38 @@ Electricity: ~250W × €0.30/kWh = ~€0.075/hour → €9-27/month depending o
 |----------|-------------|-----------------|------------|
 | Claude Pro + Google (subscriptions) | ~€45 | Very limited | 5-hour rate limits |
 | Zen pay-as-you-go (mixed) | ~€20-40 | Much more | Budget-based |
-| Free models only (OpenRouter/Zen) | **€0** | Unlimited (rate-limited) | Quality ceiling confirmed too low for Sean's work (2026-07-20), plus privacy |
+| Large free models (OpenRouter Nemotron 3 Ultra, Zen Big Pickle/DeepSeek Flash Free) | **€0** | Rate-limited by provider (OpenRouter: 20 req/min, 50-1,000/day) | Rate limits and per-task quality, not a blanket capability gap — see revision below (2026-07-20) |
 | Ollama local (Qwen 2.5 Coder 7B) | ~€9 electricity | Unlimited | Speed, quality gap |
-| Subscription-anchored (recommended) | ~€24-35 | High, quota-bound | Rate limits, mitigated by compression stack |
+| Paid escalation tier (as needed, not default) | ~€24-135 | High, quota or usage-bound | Only relevant if the free primary demonstrably falls short — see "Free vs Paid Models" below |
 
 ---
 
 ## Free vs Paid Models: Side-by-Side Comparison
 
-> **⚠️ Revised 2026-07-20:** The two strongest free models this comparison originally relied
-> on — DeepSeek-V4-Flash Free (1257 elo) and Qwen3-Coder-480B Free (1193 elo) — are both
-> confirmed dead on OpenRouter (see correction above). The benchmark numbers below are the
-> figures originally recorded for each model and have not been independently re-run; they are
-> kept only to show relative standing among models still actually served. Nemotron 3 Ultra
-> Free is now the strongest surviving free coding model.
+> **⚠️ Revised 2026-07-20, then corrected again 2026-07-20 (later):** The first revision
+> found DeepSeek-V4-Flash Free (1257 elo) and Qwen3-Coder-480B Free (1193 elo) dead on
+> OpenRouter and concluded free models generally "aren't capable enough" — an
+> overgeneralisation from those two specific deaths. The benchmark table below (elo / coding
+> index / agentic index) only covers OpenRouter models with numbers on that specific
+> benchmark suite; it does not include OpenCode Zen's Big Pickle, which isn't scored on the
+> same suite but reports **SWE-bench ~72%** independently — a strong, frontier-competitive
+> figure on a different (also credible) benchmark. Treat the "gap" below as the gap between
+> *this specific benchmark's* best-scored free and paid models, not as evidence that free
+> models categorically fall short.
 
-### Top Free Models (OpenRouter, still served as of 2026-07-20)
+### Top Free Models Scored on This Benchmark Suite (OpenRouter, still served as of 2026-07-20)
 
 | Model | Code Elo | Coding Idx | Agentic | Context | $/M (in/out) | Best For |
 |-------|----------|------------|---------|---------|--------------|----------|
-| **Nemotron 3 Ultra Free** | 1174 | 49.3 | 27.4 | 1M | $0/$0 | Now the strongest surviving free model — review-gate role |
+| **Nemotron 3 Ultra Free** | 1174 | 49.3 | 27.4 | 1M | $0/$0 | Confirmed working as a primary in production (Sean's `plan`/`build` agents) |
 | Gemma 4 26B Free | - | 39.3 | 11 | 262K | $0/$0 | Google quality |
-| ~~DeepSeek-V4-Flash Free~~ | 1257 | 56.2 | 31.1 | 1M | dead | **No longer served — do not route here** |
+| ~~DeepSeek-V4-Flash Free~~ | 1257 | 56.2 | 31.1 | 1M | dead | **No longer served on OpenRouter — do not route here** (still live as `deepseek-v4-flash-free` on OpenCode Zen) |
 | ~~Qwen3-Coder-480B Free~~ | 1193 | - | - | 1M | dead | **No longer served — do not route here** |
 | ~~OpenAI GPT-OSS-120B Free~~ | 1014 | 30.4 | 13.2 | 131K | dead | Replaced by the smaller `gpt-oss-20b:free`, not re-benchmarked |
+
+**Not on this benchmark suite, but independently strong:** Big Pickle (OpenCode Zen, free,
+SWE-bench ~72%, 200K context) — a different eval, not directly comparable to the Elo/Idx/Agentic
+columns above, but evidence of frontier-tier capability at zero cost.
 
 ### Top Paid Models (Under $0.50/M Input)
 
@@ -334,25 +361,26 @@ Electricity: ~250W × €0.30/kWh = ~€0.075/hour → €9-27/month depending o
 | MiniMax M3 | 1307 | 58.6 | 35.4 | 1M | $0.30/$1.20 | Best agentic |
 | MiMo-V2.5 | 1304 | - | - | 1M | $0.10/$0.28 | Best value |
 | DeepSeek-V4-Pro | 1289 | 59.4 | 36.4 | 1M | $0.43/$0.87 | Strong all-round |
-| DeepSeek-V4-Flash | 1257 | 56.2 | 31.1 | 1M | $0.09/$0.18 | **Cheapest paid** (the free listing of this same model is dead) |
+| DeepSeek-V4-Flash | 1257 | 56.2 | 31.1 | 1M | $0.09/$0.18 | **Cheapest paid** (the free OpenRouter listing of this same model is dead; a free listing survives on OpenCode Zen) |
 | Qwen3-Coder-Flash | - | - | - | 1M | $0.20/$0.97 | Good balance |
+| Kimi-K2.7-code | - | - | - | 262K | $0.85/$3.80 | Cheapest Kimi/Moonshot option — no free tier exists for this family on any platform checked |
 
-### Quality Gap: Free vs Paid, recalculated against surviving models
+### Gap on This Benchmark Suite (not a general capability verdict)
 
-| Metric | Best surviving free (Nemotron 3 Ultra) | Best Paid | Gap |
+| Metric | Best free, this suite (Nemotron 3 Ultra) | Best Paid | Gap |
 |--------|-----------|-----------|-----|
 | Code Elo | 1174 | 1318 (MiMo-V2.5-Pro) | -144 (10.9% lower) |
 | Coding Index | 49.3 | 60.2 (MiMo-V2.5-Pro) | -10.9 (18.1% lower) |
 | Agentic Index | 27.4 | 36.4 (DeepSeek-V4-Pro) | -9.0 (24.7% lower) |
 
-**Revised conclusion**: With the two strongest free coding models gone, the gap between the
-best surviving free model and paid models widened from the originally-reported 5-15% to
-roughly 11-25% — and is largest on the agentic-index metric that matters most for coding-agent
-work. This matches Sean's direct observation that current free models aren't capable enough
-for his work. Free models remain useful for a bounded role — cross-model review, where a
-different architecture catching bugs matters more than raw capability — but are no longer a
-credible primary-model candidate at this usage level. See
-`phases/phase-002-model-consolidation-token-efficiency.md` for the resulting model policy.
+**Corrected conclusion (2026-07-20, later)**: A benchmark gap on one suite is not the same
+claim as "free models aren't capable enough for real work" — Sean's own production config
+demonstrates Nemotron 3 Ultra 550B working as a primary. The right question isn't free-vs-paid,
+it's whether *this specific model* performs on *your specific tasks* and whether the
+*provider's rate limits* (OpenRouter: 20 req/min, 50-1,000/day) bind at your usage volume.
+Track both for two weeks before assuming a paid tier is needed — see
+`phases/phase-002-model-consolidation-token-efficiency.md` for the full correction and the
+resulting policy.
 
 ---
 
@@ -467,25 +495,29 @@ routing most work to $0 models.
 
 ## Improved Recommendations
 
-### For Your Usage Pattern (Heavy Coder, Capability-Constrained) — revised 2026-07-20
+### For Your Usage Pattern (Heavy Coder, Free-Primary-First) — revised 2026-07-20, corrected again 2026-07-20 (later)
 
-**The free-first strategy below is superseded.** `deepseek-v4-flash:free` is dead, and Sean has
-separately confirmed that surviving free models aren't capable enough for his actual work (the
-widened quality gap in the section above supports this). Current strategy: one fixed capable
-primary model, compressed aggressively (RTK/Caveman/Ponytail), with a free model reserved for
-the review-gate role only. Full policy: `phases/phase-002-model-consolidation-token-efficiency.md`.
+**Corrected once more, same day.** The "capability-constrained" framing that replaced the
+original free-first strategy was itself wrong — it generalised from one dead model
+(`deepseek-v4-flash:free`) to a blanket claim that free models aren't capable enough. Sean's
+production config (`plan`/`build` on `nvidia/nemotron-3-ultra-550b-a55b:free`) is direct
+evidence otherwise. Current strategy: **a large, confirmed-live free model as primary**
+(Nemotron 3 Ultra 550B, or OpenCode Zen's Big Pickle / `deepseek-v4-flash-free`), compressed
+aggressively (RTK/Caveman/Ponytail) to stretch rate limits further, with a paid tier reserved
+for confirmed rate-limit exhaustion or a specific task the free primary demonstrably can't
+handle. Full policy: `phases/phase-002-model-consolidation-token-efficiency.md`.
 
-**Primary Strategy: Fixed Paid Primary + Free Review Gate**
+**Primary Strategy: Large Free Primary + Paid Escalation**
 
 | Task Type | Model | Cost | Why |
 |-----------|-------|------|-----|
-| **Planning + coding + verification** | Your chosen primary (Claude via subscription, or DeepSeek-V4-Pro via API — see the lane decision in `recommendations-economist.md`) | subscription or $0.435/$0.87 per MTok | One model, one session, no cache loss |
-| **Escalation (exception only)** | Next model up in the same family | higher | Hard-signal failure + one same-model retry first, in a fresh session |
-| **Reviews** | Nemotron 3 Ultra Free (`nvidia/nemotron-3-ultra-550b-a55b:free`, confirmed live) | $0 | Cross-model review, its own session |
+| **Planning + coding + verification** | A large, confirmed-live free model — Nemotron 3 Ultra 550B (OpenRouter), Big Pickle or `deepseek-v4-flash-free` (OpenCode Zen) | $0 | One model, one session, no cache loss. Verify liveness before committing — free rosters rotate |
+| **Escalation (exception only)** | DeepSeek-V4-Pro, Kimi-K2.7-code, or Claude (subscription/API) | $0.435-3.80/MTok, or subscription | Only on confirmed rate-limit exhaustion or a specific task the free primary can't handle — always a fresh session |
+| **Reviews** | Nemotron 3 Ultra Free (`nvidia/nemotron-3-ultra-550b-a55b:free`, confirmed live) — a different model from the primary even if the primary is also free | $0 | Cross-model review, its own session |
 
-**Estimated Monthly Cost**: EUR 24-35 (subscription-anchored lane) or EUR 55-135 (API-only
-lane, before compression savings) — see `recommendations-economist.md` for the full lane
-comparison.
+**Estimated Monthly Cost**: EUR 0 if the free primary covers your workload within rate limits
+(the likely case, per your own production evidence) — track rate-limit hits for two weeks to
+confirm. EUR 24-135 only for whatever fraction of work genuinely needs paid escalation.
 
 ### Token Compression Checklist
 
