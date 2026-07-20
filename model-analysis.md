@@ -28,7 +28,7 @@ Effective cost per MTok (MiMo Code $50/38B):
 
 **Burn rate**: ~13.5 MTok/hour at heavy usage = ~$1.77/hour = ~21.6 hours for 38B credits = **4-5 working days**
 
-**Conclusion**: MiMo Code is competitive with OpenRouter for cache-heavy work, but OpenRouter is cheaper for fresh work. Use free models on OpenRouter for 80% of work.
+**Conclusion**: MiMo Code is competitive with OpenRouter for cache-heavy work, but OpenRouter is cheaper for fresh work. Revised 2026-07-20: route the primary workload to a fixed paid model on OpenRouter (see "Free vs Paid Models" below for why free is no longer viable here), not to free models.
 
 ---
 
@@ -93,35 +93,51 @@ Effective cost per MTok (MiMo Code $50/38B):
 
 ## Free Models Available (No Cost)
 
+> **⚠️ Correction, verified 2026-07-20:** `deepseek/deepseek-v4-flash:free` — the primary
+> recommendation throughout the original version of this document — is **no longer served by
+> any provider on OpenRouter**. Confirmed by fetching the live OpenRouter model list
+> (`GET /v1/models`, 14 `:free` models returned, DeepSeek not among them). Roughly half of the
+> other free models named below have also rotated out since this doc was first written — see
+> the corrected table. **Given Sean's stated constraint that free models aren't capable enough
+> for his real work, treat this whole section as a source for the review-gate role only, not
+> as a primary-model candidate.**
+
 ### OpenCode Zen (opencode.ai/zen)
+
+*Not independently re-verified — OpenCode Zen has no public model-list API to check against
+(unlike OpenRouter). Given the OpenRouter finding above, treat "DeepSeek V4 Flash Free" here
+with the same skepticism until confirmed live in the OpenCode Zen dashboard.*
 
 | Model | Notes |
 |-------|-------|
 | Big Pickle | Stealth model, possibly GLM mixture. Free "for limited time". Data may be used for training. |
-| DeepSeek V4 Flash Free | Promotional. Data may be used for training. |
+| DeepSeek V4 Flash Free | **Unverified — likely dead, see correction above.** Data may be used for training. |
 | MiMo-V2.5 Free | Promotional. |
 | North Mini Code Free | Cohere-based. Data retained. Do NOT submit confidential data. |
 | Nemotron 3 Ultra Free | NVIDIA trial. Data logged for improvement. |
 
 ### OpenRouter (openrouter.ai)
 
-26 free models. Best for coding:
+**Re-verified live 2026-07-20** against `GET https://openrouter.ai/api/v1/models` — 14 `:free`
+models currently served (down from the 26 this section originally claimed; many code-focused
+models have rotated out). Confirmed-live free models, best for coding/review:
 
-| Model | ID | Size | Context | Notes |
-|-------|----|------|---------|-------|
-| **DeepSeek-V4-Flash Free** | `deepseek/deepseek-v4-flash:free` | ? | 1M | **Primary recommendation** — fast, reliable, free |
-| Qwen3 Coder 480B | `qwen/qwen3-coder:free` | 480B MoE | 1M | Massive, code-specialized (unreliable recently) |
-| Nemotron 3 Ultra 550B | `nvidia/nemotron-3-ultra-550b-a55b:free` | 550B MoE | 1M | Strong general reasoning, great for reviews |
-| OpenAI gpt-oss-120b | `openai/gpt-oss-120b:free` | 120B | 131K | Decent reasoning, OpenAI-trained |
-| Nous Hermes 3 405B | `nousresearch/hermes-3-llama-3.1-405b:free` | 405B | 131K | Good at following complex instructions |
-| Meta Llama 3.3 70B | `meta-llama/llama-3.3-70b-instruct:free` | 70B | 131K | Fast, decent for straightforward tasks |
-| Poolside Laguna M.1 | `poolside/laguna-m.1:free` | ? | 262K | Code-focused |
-| Poolside Laguna XS.2 | `poolside/laguna-xs.2:free` | ? | 262K | Code-focused, smaller |
-| Gemma 4 31B | `google/gemma-4-31b-it:free` | 31B | 262K | Google, good quality |
-| Gemma 4 26B | `google/gemma-4-26b-a4b-it:free` | 26B MoE | 262K | Google, efficient |
-| Nemotron 3 Super 120B | `nvidia/nemotron-3-super-120b-a12b:free` | 120B MoE | 1M | Large context |
-| Qwen3 Next 80B | `qwen/qwen3-next-80b-a3b-instruct:free` | 80B MoE | 262K | Qwen family |
-| Cohere North Mini Code | `cohere/north-mini-code:free` | ? | 256K | Code-focused |
+| Model | ID | Context | Notes |
+|-------|----|---------|-------|
+| Nemotron 3 Ultra 550B | `nvidia/nemotron-3-ultra-550b-a55b:free` | 1M | **Confirmed live.** Strong general reasoning — recommended for the review-gate role |
+| Nemotron 3 Super 120B | `nvidia/nemotron-3-super-120b-a12b:free` | 1M | **Confirmed live.** Large context |
+| Gemma 4 31B | `google/gemma-4-31b-it:free` | 262K | **Confirmed live.** Google, good quality |
+| Gemma 4 26B | `google/gemma-4-26b-a4b-it:free` | 262K | **Confirmed live.** Google, efficient |
+| Poolside Laguna M.1 | `poolside/laguna-m.1:free` | 262K | **Confirmed live.** Code-focused |
+| Poolside Laguna XS 2.1 | `poolside/laguna-xs-2.1:free` | 262K | **Confirmed live**, but ID changed from the `laguna-xs.2:free` this doc originally listed |
+| Cohere North Mini Code | `cohere/north-mini-code:free` | 256K | **Confirmed live.** Code-focused |
+| OpenAI gpt-oss-20b | `openai/gpt-oss-20b:free` | 131K | **Confirmed live**, but replaces the `gpt-oss-120b:free` this doc originally listed — smaller model, re-evaluate quality before relying on it |
+
+**No longer served (confirmed dead 2026-07-20):** `deepseek/deepseek-v4-flash:free`,
+`qwen/qwen3-coder:free`, `qwen/qwen3-next-80b-a3b-instruct:free`,
+`nousresearch/hermes-3-llama-3.1-405b:free`, `meta-llama/llama-3.3-70b-instruct:free`,
+`openai/gpt-oss-120b:free`. Do not route work to these IDs — requests will fail or silently
+fall back to a different model than intended.
 
 ---
 
@@ -285,23 +301,30 @@ Electricity: ~250W × €0.30/kWh = ~€0.075/hour → €9-27/month depending o
 |----------|-------------|-----------------|------------|
 | Claude Pro + Google (subscriptions) | ~€45 | Very limited | 5-hour rate limits |
 | Zen pay-as-you-go (mixed) | ~€20-40 | Much more | Budget-based |
-| Free models only (OpenRouter/Zen) | **€0** | Unlimited (rate-limited) | Quality ceiling, privacy |
+| Free models only (OpenRouter/Zen) | **€0** | Unlimited (rate-limited) | Quality ceiling confirmed too low for Sean's work (2026-07-20), plus privacy |
 | Ollama local (Qwen 2.5 Coder 7B) | ~€9 electricity | Unlimited | Speed, quality gap |
-| Mixed: free implementer + paid planner | ~€5-15 | High | Smart budget allocation |
+| Subscription-anchored (recommended) | ~€24-35 | High, quota-bound | Rate limits, mitigated by compression stack |
 
 ---
 
 ## Free vs Paid Models: Side-by-Side Comparison
 
-### Top Free Models (OpenRouter)
+> **⚠️ Revised 2026-07-20:** The two strongest free models this comparison originally relied
+> on — DeepSeek-V4-Flash Free (1257 elo) and Qwen3-Coder-480B Free (1193 elo) — are both
+> confirmed dead on OpenRouter (see correction above). The benchmark numbers below are the
+> figures originally recorded for each model and have not been independently re-run; they are
+> kept only to show relative standing among models still actually served. Nemotron 3 Ultra
+> Free is now the strongest surviving free coding model.
+
+### Top Free Models (OpenRouter, still served as of 2026-07-20)
 
 | Model | Code Elo | Coding Idx | Agentic | Context | $/M (in/out) | Best For |
 |-------|----------|------------|---------|---------|--------------|----------|
-| **DeepSeek-V4-Flash Free** | 1257 | 56.2 | 31.1 | 1M | $0/$0 | Primary coding (free) |
-| Qwen3-Coder-480B Free | 1193 | - | - | 1M | $0/$0 | Code-specialized (unreliable) |
-| Nemotron 3 Ultra Free | 1174 | 49.3 | 27.4 | 1M | $0/$0 | Reviews, reasoning |
-| OpenAI GPT-OSS-120B Free | 1014 | 30.4 | 13.2 | 131K | $0/$0 | Alternative |
+| **Nemotron 3 Ultra Free** | 1174 | 49.3 | 27.4 | 1M | $0/$0 | Now the strongest surviving free model — review-gate role |
 | Gemma 4 26B Free | - | 39.3 | 11 | 262K | $0/$0 | Google quality |
+| ~~DeepSeek-V4-Flash Free~~ | 1257 | 56.2 | 31.1 | 1M | dead | **No longer served — do not route here** |
+| ~~Qwen3-Coder-480B Free~~ | 1193 | - | - | 1M | dead | **No longer served — do not route here** |
+| ~~OpenAI GPT-OSS-120B Free~~ | 1014 | 30.4 | 13.2 | 131K | dead | Replaced by the smaller `gpt-oss-20b:free`, not re-benchmarked |
 
 ### Top Paid Models (Under $0.50/M Input)
 
@@ -311,18 +334,25 @@ Electricity: ~250W × €0.30/kWh = ~€0.075/hour → €9-27/month depending o
 | MiniMax M3 | 1307 | 58.6 | 35.4 | 1M | $0.30/$1.20 | Best agentic |
 | MiMo-V2.5 | 1304 | - | - | 1M | $0.10/$0.28 | Best value |
 | DeepSeek-V4-Pro | 1289 | 59.4 | 36.4 | 1M | $0.43/$0.87 | Strong all-round |
-| DeepSeek-V4-Flash | 1257 | 56.2 | 31.1 | 1M | $0.09/$0.18 | **Cheapest paid** |
+| DeepSeek-V4-Flash | 1257 | 56.2 | 31.1 | 1M | $0.09/$0.18 | **Cheapest paid** (the free listing of this same model is dead) |
 | Qwen3-Coder-Flash | - | - | - | 1M | $0.20/$0.97 | Good balance |
 
-### Quality Gap: Free vs Paid
+### Quality Gap: Free vs Paid, recalculated against surviving models
 
-| Metric | Best Free | Best Paid | Gap |
+| Metric | Best surviving free (Nemotron 3 Ultra) | Best Paid | Gap |
 |--------|-----------|-----------|-----|
-| Code Elo | 1257 (DeepSeek-V4-Flash Free) | 1318 (MiMo-V2.5-Pro) | -61 (4.6% lower) |
-| Coding Index | 56.2 (DeepSeek-V4-Flash Free) | 60.2 (MiMo-V2.5-Pro) | -4.0 (6.7% lower) |
-| Agentic Index | 31.1 (DeepSeek-V4-Flash Free) | 36.4 (DeepSeek-V4-Pro) | -5.3 (14.5% lower) |
+| Code Elo | 1174 | 1318 (MiMo-V2.5-Pro) | -144 (10.9% lower) |
+| Coding Index | 49.3 | 60.2 (MiMo-V2.5-Pro) | -10.9 (18.1% lower) |
+| Agentic Index | 27.4 | 36.4 (DeepSeek-V4-Pro) | -9.0 (24.7% lower) |
 
-**Conclusion**: Free models are only 5-15% worse than paid models on benchmarks. For 80% of coding tasks, the difference is negligible.
+**Revised conclusion**: With the two strongest free coding models gone, the gap between the
+best surviving free model and paid models widened from the originally-reported 5-15% to
+roughly 11-25% — and is largest on the agentic-index metric that matters most for coding-agent
+work. This matches Sean's direct observation that current free models aren't capable enough
+for his work. Free models remain useful for a bounded role — cross-model review, where a
+different architecture catching bugs matters more than raw capability — but are no longer a
+credible primary-model candidate at this usage level. See
+`phases/phase-002-model-consolidation-token-efficiency.md` for the resulting model policy.
 
 ---
 
@@ -370,18 +400,23 @@ Electricity: ~250W × €0.30/kWh = ~€0.075/hour → €9-27/month depending o
 
 **Best practice**: Set `max_tokens` based on task complexity. Simple edits don't need 4K token responses.
 
-### 4. Model Cascading
+### 4. Escalation on Hard Failure (revised 2026-07-20 — was "Model Cascading")
 
-**Technique**: Use cheaper models first, escalate to expensive models only if needed.
+**Technique**: Stay on one primary model for the whole session; escalate only on a hard
+failure (build/lint/test), and only in a fresh session — never mid-conversation. See
+"Correction" note above: the free-first step this technique originally described relied on
+`deepseek-v4-flash:free`, which is dead, and mid-session cascading discards the prompt cache
+on every hop (caches are model-scoped). Treat this as an exception path, not a routine ladder.
 
 | Step | Model | Cost | When to Use |
 |------|-------|------|-------------|
-| 1 | Free model (DeepSeek-V4-Flash Free) | $0 | Try first for all tasks |
-| 2 | Cheap paid (DeepSeek-V4-Flash) | $0.09/M | If free model fails |
-| 3 | Mid-range (Qwen3-Coder-Flash) | $0.20/M | Complex reasoning |
-| 4 | Premium (MiMo-V2.5-Pro) | $0.43/M | Critical tasks only |
+| 1 | Primary paid model (e.g. DeepSeek-V4-Flash) | $0.09/$0.18 per MTok | Every task, one fixed session |
+| 2 | Same model, retry once | same | On hard failure — most failures are one-off mistakes |
+| 3 | Escalation model, same family (e.g. DeepSeek-V4-Pro) | $0.435/$0.87 per MTok | Fresh session, only if the retry also fails |
+| 4 | Frontier model (e.g. MiMo-V2.5-Pro, or Claude Opus) | higher | Rare — hardest problems only |
 
-**Savings**: 80% of tasks succeed with free models → 80% cost reduction.
+**Savings**: comes from avoiding repeated full-context re-pricing on model switches, not from
+routing most work to $0 models.
 
 ### 5. Batch Processing
 
@@ -432,25 +467,32 @@ Electricity: ~250W × €0.30/kWh = ~€0.075/hour → €9-27/month depending o
 
 ## Improved Recommendations
 
-### For Your Usage Pattern (Heavy Coder, Budget-Conscious)
+### For Your Usage Pattern (Heavy Coder, Capability-Constrained) — revised 2026-07-20
 
-**Primary Strategy: Free Models + Smart Escalation**
+**The free-first strategy below is superseded.** `deepseek-v4-flash:free` is dead, and Sean has
+separately confirmed that surviving free models aren't capable enough for his actual work (the
+widened quality gap in the section above supports this). Current strategy: one fixed capable
+primary model, compressed aggressively (RTK/Caveman/Ponytail), with a free model reserved for
+the review-gate role only. Full policy: `phases/phase-002-model-consolidation-token-efficiency.md`.
+
+**Primary Strategy: Fixed Paid Primary + Free Review Gate**
 
 | Task Type | Model | Cost | Why |
 |-----------|-------|------|-----|
-| **80% of work** | DeepSeek-V4-Flash Free | $0 | Fast, reliable, free |
-| **15% of work** | DeepSeek-V4-Flash (paid) | $0.09/M | When free fails |
-| **5% of work** | Qwen3-Coder-Flash | $0.20/M | Critical tasks |
-| **Reviews** | Nemotron 3 Ultra Free | $0 | Cross-model review |
+| **Planning + coding + verification** | Your chosen primary (Claude via subscription, or DeepSeek-V4-Pro via API — see the lane decision in `recommendations-economist.md`) | subscription or $0.435/$0.87 per MTok | One model, one session, no cache loss |
+| **Escalation (exception only)** | Next model up in the same family | higher | Hard-signal failure + one same-model retry first, in a fresh session |
+| **Reviews** | Nemotron 3 Ultra Free (`nvidia/nemotron-3-ultra-550b-a55b:free`, confirmed live) | $0 | Cross-model review, its own session |
 
-**Estimated Monthly Cost**: $20-30 (vs $300 on MiMo Code at your usage rate)
+**Estimated Monthly Cost**: EUR 24-35 (subscription-anchored lane) or EUR 55-135 (API-only
+lane, before compression savings) — see `recommendations-economist.md` for the full lane
+comparison.
 
 ### Token Compression Checklist
 
 Before each request, ask:
-1. ✅ Am I using the smallest model that can handle this task?
+1. ✅ Am I staying on my primary model for this whole session (no mid-session switching)?
 2. ✅ Am I sending only necessary context (not entire repo)?
-3. ✅ Am I using prompt caching (static content first)?
+3. ✅ Am I using prompt caching (static content first, byte-identical between requests)?
 4. ✅ Am I limiting response length appropriately?
 5. ✅ Can I batch multiple tasks into one request?
 6. ✅ Can I use local models for simple tasks?
@@ -459,12 +501,16 @@ Before each request, ask:
 
 | Priority | Technique | Effort | Savings |
 |----------|-----------|--------|---------|
-| 1 | Use free models for 80% of work | Low | 80% |
+| 1 | Never switch models mid-session (caches are model-scoped) | Low | Avoids repeated full-context re-pricing |
 | 2 | Enable prompt caching | Low | 50-90% on repeated context |
 | 3 | Send only relevant context | Medium | 30-70% |
-| 4 | Use model cascading | Medium | 60-80% |
+| 4 | Escalate on hard failure only, never cascade routinely | Medium | Avoids the switching cost above, escalation stays rare |
 | 5 | Batch similar tasks | Medium | 40-60% |
 | 6 | Local pre-processing | High | 50-70% |
 | 7 | Token-efficient prompting | Low | 20-40% |
 
-**Combined Savings**: 90-95% cost reduction is achievable with these techniques.
+**Combined Savings**: RTK, Caveman, and Ponytail together claim roughly 50-90% off different
+token categories (tool-output input, agent-output prose, code volume respectively); realistic
+combined session-level savings are lower than the naive product of the three because they
+compress overlapping content. Treat 90-95% as the tools' own upper-bound marketing claim, not
+a verified combined figure.

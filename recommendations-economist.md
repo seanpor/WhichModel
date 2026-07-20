@@ -8,7 +8,7 @@
 
 ## Summary
 
-Most developers overspend on AI coding by 5-10x. They use expensive models for trivial tasks, send entire codebases when they need one file, and pay for verbose output that adds no value. Four free, open-source tools — RTK, Caveman, Ponytail, and 9Router — fix this automatically. Installed in five minutes, they compress tool output by 60-90 per cent, agent prose by 65 per cent, and code volume by 54 per cent. Combined with free models from OpenRouter, the monthly cost drops from USD 100-300 to EUR 15-20. The quality does not suffer. The discipline does not change. The tools do the work.
+Most developers overspend on AI coding by 5-10x. They use expensive models for trivial tasks, send entire codebases when they need one file, and pay for verbose output that adds no value. Four free, open-source tools — RTK, Caveman, Ponytail, and 9Router — fix this automatically. Installed in five minutes, they compress tool output by 60-90 per cent, agent prose by 65 per cent, and code volume by 54 per cent. Combined with a fixed, capable primary model instead of a free-tier chase, the monthly cost drops from USD 100-300 to EUR 24-35 on a subscription-anchored lane. The quality does not suffer. The discipline does not change. The tools do the work.
 
 ---
 
@@ -17,15 +17,15 @@ Most developers overspend on AI coding by 5-10x. They use expensive models for t
 1. **Install RTK.** One command, 60-90 per cent savings on tool output tokens. Biggest single win.
 2. **Install Caveman.** One command, 65 per cent savings on agent output tokens.
 3. **Install Ponytail.** One command, 54 per cent less code generated.
-4. **Use free models for 80 per cent of work.** Reserve paid models for architecture, security, and production.
-5. **Enable prompt caching.** Keep static content at the start of every prompt. Do not rearrange it between sessions.
+4. **Run one capable paid model as your primary.** Free models are not reliably capable enough for demanding work — compress aggressively instead of chasing free tiers. See "Choosing your AI tool and provider" for the lane decision.
+5. **Enable prompt caching.** Keep static content at the start of every prompt. Do not rearrange it between sessions. Never switch models mid-session — caches are model-scoped, so a switch re-prices your entire accumulated context.
 6. **Send only what matters.** Use `@file` references. Be specific about line numbers. Omit unchanged code.
 7. **Batch related work.** One request for three bugs, not three requests for one bug each.
 8. **Set up Open Brain.** Forty-five minutes of setup saves 15-40 minutes per day of context reloading.
-9. **Adopt model cascading.** Free first, paid only on failure.
-10. **Use 9Router.** Automatic provider fallback, built-in compression, never stop coding.
+9. **Escalate on hard failure only, never mid-session.** One retry on the same model, then a fresh session on the next model up. Escalation is an exception path, not a default cascade.
+10. **Use 9Router only if you need multi-provider fallback.** Under a fixed model policy its routing value shrinks and its bundled compression duplicates RTK.
 
-Total monthly cost: EUR 15-20. Previous spending: USD 100-300. The tools are free. The discipline is not.
+Total monthly cost: EUR 24-35 on a subscription-anchored lane, or EUR 55-135 on an API-only lane — see the lane decision below. Previous spending: USD 100-300. The tools are free. The discipline is not.
 
 ---
 
@@ -94,14 +94,15 @@ Request JSON or YAML responses instead of free-form text. Structured output uses
 
 **How:** Append "Respond as JSON only, no explanation" to your prompt. Use schema validation to catch errors automatically.
 
-### 5. Model cascading
+### 5. Escalation, not cascading
 
-Try the cheapest model first. Escalate only when quality is insufficient.
+Model cascading — routing every request through a ladder of free, then cheap, then premium models — sounds efficient but is not: prompt caches are model-scoped, so every hop re-prices your entire accumulated context at full input rate and throws away the conversation's cache. Treat escalation as an **exception path**, triggered only by a hard failure (build, lint, or test), not a default workflow.
 
-**When to escalate:**
-- Complex architecture: DeepSeek-V4-Flash (USD 0.09 per MTok)
-- Security features: Qwen3-Coder-Flash (USD 0.20 per MTok)
-- Production deployment: MiMo-V2.5-Pro (USD 0.43 per MTok)
+**The rule:** stay on your primary model for the whole session. On a hard failure, retry once on the same model — most failures are one-off mistakes, not capability gaps. If that also fails, start a **fresh session** on the escalation model with a written summary of what was tried. Never switch models mid-conversation.
+
+**Escalation targets (same model family as your primary, to minimise behavioural drift):**
+- DeepSeek family: DeepSeek-V4-Flash (USD 0.09/0.18 per MTok, paid — the `:free` listing is no longer served by any provider) → DeepSeek-V4-Pro (USD 0.435/0.87 per MTok) for harder architecture or security work.
+- Claude family: Sonnet (subscription, or USD 2/10 per MTok introductory API pricing through 2026-08-31) → Opus 4.8 (USD 5/25 per MTok) for the hardest problems.
 
 ### 6. Failure detection
 
@@ -123,13 +124,13 @@ These are binary. The model failed. Escalate.
 
 **The verification gate:**
 
-1. Free model produces output.
+1. Primary model produces output.
 2. Automated verification runs: build, lint, test.
 3. If all pass, accept. If any fail, escalate.
-4. On escalation, a different free model reviews and attempts to fix.
-5. If that also fails, escalate to paid model.
+4. On escalation, retry once on the same model — most failures are one-off mistakes, not capability gaps.
+5. If that also fails, start a fresh session on the next model up in the same family (see "Escalation, not cascading").
 
-A free model that passes all tests is more trustworthy than a paid model that fails them.
+A model that passes all tests is more trustworthy than one that fails them, regardless of price.
 
 ### 7. Choosing the right verification
 
@@ -148,11 +149,11 @@ Match the verification depth to the risk.
 
 ### 8. Worked example
 
-A free model is asked to add a `POST /api/users` endpoint to an Express.js application. The task is high-risk: multi-file change, new database interaction, new API contract.
+The primary model is asked to add a `POST /api/users` endpoint to an Express.js application. The task is high-risk: multi-file change, new database interaction, new API contract.
 
-**Step 1: Plan.** Free model generates the plan. A different free model reviews it and catches a missing rate-limiting middleware.
+**Step 1: Plan.** Primary model generates the plan, in the same session that will implement it. The free review-gate model (Nemotron 3 Ultra Free), in its own separate session, reviews the plan and catches a missing rate-limiting middleware.
 
-**Step 2: Implement.** Free model writes three files following existing patterns.
+**Step 2: Implement.** Primary model writes three files following existing patterns.
 
 **Step 3: Verify.** `make build` passes. `make lint` passes. Three of 12 tests fail: wrong status codes, missing error handling, and a password hash leak. Hard signal — do not commit.
 
@@ -168,7 +169,7 @@ A free model is asked to add a `POST /api/users` endpoint to an Express.js appli
 | Implementation | Wrong status codes, missing error handling, password leak | Automated tests |
 | Code review | Password hash in error response | Cross-model review (security) |
 
-Without verification, all three issues would have reached production. Time cost: roughly three minutes. A paid model would have taken the same time but cost USD 0.50-2.00 instead of nothing.
+Without verification, all three issues would have reached production. Time cost: roughly three minutes. The plan review and code review that caught two of the three issues ran on the free review-gate model, in its own session — added cost: zero.
 
 ### 9. Batching
 
@@ -184,16 +185,16 @@ On a desktop with a 2080 Ti, Ollama runs Qwen 2.5 Coder 7B at 30-50 tokens per s
 
 ### 11. Agent specialisation
 
-Different models have different strengths. Using the same model for everything wastes its strengths and exposes its weaknesses.
+Different models have different strengths — but switching models mid-session costs you the prompt cache (see "Avoid mid-session model switching" above). Resolve this by binding each *role* to a fixed model in your tool config, so each role runs in its own session rather than switching inside one.
 
-| Task | Model | Why |
+| Role | Model | Why |
 |------|-------|-----|
-| Planning | DeepSeek-V4-Flash Free | Fast, good at structure |
-| Coding | DeepSeek-V4-Flash Free | Reliable, free |
-| Reviews | Nemotron 3 Ultra Free | Different architecture, catches different bugs |
-| Security | Qwen3-Coder-Flash (paid) | Stronger reasoning |
+| Planning | Your primary (see the lane decision) | Same model as implementation — no cache loss between planning and building within one session |
+| Coding | Your primary | Consistency matters more than per-task optimality here |
+| Reviews | Nemotron 3 Ultra Free (`nvidia/nemotron-3-ultra-550b-a55b:free`, confirmed live July 2026) | Different architecture, catches different bugs. Runs in its own review-gate session, so there's no cache to lose |
+| Escalation | Next model up in the same family (see "Escalation, not cascading") | Behavioural continuity; reserved for hard-failure exceptions |
 
-Cross-model review is not optional. It catches semantic errors that same-model review misses.
+Cross-model review is not optional. It catches semantic errors that same-model review misses. Keep it to a dedicated review-gate session, not a live switch.
 
 ### 12. Streaming for faster feedback
 
@@ -201,7 +202,11 @@ Enable streaming responses. You see output as it generates, not after a 30-secon
 
 **How:** Most tools enable streaming by default. If yours does not, check the settings.
 
-### 13. Local linting before AI
+### 13. Avoid mid-session model switching
+
+Prompt caching is model-scoped: switching models invalidates your entire accumulated context, which is re-priced at full input rate on the new model. This is the single most expensive form of "smart routing" — cascading through free-then-cheap-then-premium models on every request, or rotating between free models to dodge rate limits, both pay this cost repeatedly, on top of losing conversational continuity. Two rules eliminate it: bind a model to a *role* (planning/coding, review, escalation) in your tool config rather than choosing per request, and never switch models inside a running session — start a new session instead.
+
+### 14. Local linting before AI
 
 Run your linter before sending code to AI. A model that receives clean code produces cleaner output. A model that receives code with lint errors often reproduces or compounds them.
 
@@ -242,12 +247,13 @@ Use the Chromebook for mobile work with free API models. Use the desktop for off
 ## The workflow
 
 1. **Start of session:** AI searches Open Brain for relevant context. No re-explaining.
-2. **Planning:** Free model writes the plan. Different free model reviews it.
-3. **Implementation:** Free model writes code. Send only relevant files via `@file` references.
-4. **Verification:** Free model runs build/lint/tests. Escalate to paid model only on failure.
-5. **Capture:** Store decisions, patterns, and debugging notes in Open Brain for next time.
+2. **Planning:** Primary model writes the plan, in the same session that will implement it — no cache loss from a mid-session model switch.
+3. **Implementation:** Primary model writes code. Send only relevant files via `@file` references.
+4. **Verification:** Primary model runs build/lint/tests. Escalate to the next model up only on a hard failure, and only in a fresh session.
+5. **Review:** The free review-gate model (Nemotron 3 Ultra Free) reviews the diff in its own session — cross-model review with no cache to lose.
+6. **Capture:** Store decisions, patterns, and debugging notes in Open Brain for next time.
 
-Per-feature cost drops from USD 5-20 to effectively zero.
+Per-feature cost is dominated by the primary model's token usage — see the token-efficiency stack above and the lane decision below for how to keep that low.
 
 ---
 
@@ -255,7 +261,7 @@ Per-feature cost drops from USD 5-20 to effectively zero.
 
 The techniques above are habits. These tools automate them. They are ordered by impact: the first saves the most tokens for the least effort.
 
-### Priority 1: RTK — compress tool output (68,000 GitHub stars)
+### Priority 1: RTK — compress tool output (72,000 GitHub stars)
 
 Every `git diff`, `grep`, `ls`, and test runner dumps raw output into the LLM context. RTK intercepts these commands and compresses the output before it reaches the model. In a typical 30-minute session, it cuts input tokens by 80 per cent.
 
@@ -267,19 +273,21 @@ It is a single Rust binary with zero dependencies. Install it, run `rtk init -g`
 brew install rtk && rtk init -g
 ```
 
-### Priority 2: Caveman — compress agent output (84,000 GitHub stars)
+### Priority 2: Caveman — compress agent output (91,000 GitHub stars)
 
 RTK compresses what goes *into* the model. Caveman compresses what comes *out*. It injects a prompt that makes the agent reply in terse fragments instead of verbose prose. The same technical answer, 65 per cent fewer output tokens.
 
-Install once, and every session starts in caveman mode. Turn it off with "normal mode" if you need full prose for a complex explanation.
+Install once, and every session starts in caveman mode. Turn it off with "normal mode" if you need full prose for a complex explanation. **Caveat:** if your primary is a capable paid model, you are sometimes paying for its reasoning and explanation, not just its code — use `/caveman lite` or toggle off for design discussions and architecture reviews.
 
 **Savings:** 65 per cent on output tokens. **Cost:** Zero. **Effort:** One command to install.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.sh | bash
+npx -y github:JuliusBrussee/caveman
 ```
 
-### Priority 3: Ponytail — write less code (74,000 GitHub stars)
+The installer was rewritten to a single Node script; older documentation referencing a `curl | bash install.sh` command is stale.
+
+### Priority 3: Ponytail — write less code (86,000 GitHub stars)
 
 Caveman makes the agent *talk* less. Ponytail makes it *write* less code. It injects a "lazy senior dev" ruleset: before writing code, the agent checks whether a stdlib function, a native HTML element, or an existing dependency already does the job. The result is 54 per cent fewer lines of code on average, with no loss of safety.
 
@@ -288,16 +296,22 @@ Where Caveman is about output tokens, Ponytail is about code volume. The two sta
 **Savings:** 54 per cent fewer lines of code, 20 per cent cheaper. **Cost:** Zero. **Effort:** One command to install.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/DietrichGebert/ponytail/main/install.sh | bash
+npx skills add DietrichGebert/ponytail
 ```
 
-### Priority 4: 9Router — smart provider routing (19,000 GitHub stars)
+The old `curl | bash install.sh` command 404s — the project moved to the `skills` npm installer.
 
-9Router is a local proxy that sits between your AI tool and your providers. It routes requests through a 3-tier fallback: subscription models first, then cheap paid models, then free models. If your Claude Code quota runs out mid-session, it silently switches to a free provider without interrupting your work.
+### Priority 4: 9Router — smart provider routing (23,000 GitHub stars — optional)
 
-It also includes RTK compression built in, plus optional "Caveman mode" and "Ponytail mode" — so it can run all three tools through a single proxy.
+9Router is a local proxy that sits between your AI tool and your providers. It routes requests through a 3-tier fallback: subscription models first, then cheap paid models, then free models. If your Claude Code quota runs out mid-session, it switches to a fallback provider without interrupting your work.
 
-**Savings:** Automatic fallback prevents downtime; built-in compression saves 20-40 per cent. **Cost:** Zero. **Effort:** `npm install -g 9router && 9router`.
+It also includes RTK-style compression built in, plus optional "Caveman mode" and "Ponytail mode" — so it can run all three tools through a single proxy.
+
+Under the fixed model policy recommended in this report, 9Router's routing value shrinks (you are deliberately not chasing free-tier fallback) and its bundled compression duplicates RTK if you have already installed it directly. Treat it as optional — install it only if you specifically want automatic fallback when a subscription quota runs out mid-session.
+
+**Savings:** Automatic fallback prevents downtime; built-in compression overlaps with RTK. **Cost:** Zero. **Effort:** `npm install -g 9router && 9router`.
+
+**Install carefully:** several similarly-named npm packages exist (`n9router`, `hn9router`) that are not the same project. Install only the `9router` package.
 
 ### How they stack
 
@@ -344,9 +358,16 @@ OpenRouter scores highest because it has the widest model selection, transparent
 
 **The cost trap:** Cursor's tab-completion uses small, cheap models and costs little. But its agent mode (Ctrl+K, chat) uses the same expensive models as Claude Code. Most developers burn money on the agent, not the autocomplete.
 
-**The provider trap:** Subscriptions (Claude Pro, Cursor Pro) give you a fixed quota that expires. Pay-as-you-go (OpenRouter, 9Router) gives you tokens that roll over and cost less per unit. For heavy users, pay-as-you-go is almost always cheaper.
+**The provider trap:** Subscriptions (Claude Pro, Cursor Pro) give you a fixed quota that expires. Pay-as-you-go (OpenRouter, 9Router) gives you tokens that roll over and cost less per unit. For heavy users needing only mid-tier capability, pay-as-you-go is usually cheaper. **This flips if your work requires frontier-model capability** — see the lane decision below.
 
-**Recommendation:** Use OpenCode or Cline as your tool (free, any model), OpenRouter as your provider (cheapest paid, best free selection), and 9Router as your router (auto-fallback). This combination gives you maximum control over cost with zero subscription lock-in.
+**The lane decision.** Free models are not reliably capable enough for demanding work, and per-token API pricing on a frontier model (e.g. Claude Sonnet at USD 2-3 / 10-15 per MTok) is not viable at a heavy-user token rate. Two coherent options:
+
+- **Subscription-anchored (recommended when you need frontier capability):** Claude Pro (~EUR 24/month) or equivalent, with the compression stack (RTK + Caveman + Ponytail) stretching the rate-limit window 3-5x. Estimated cost: EUR 24-35/month. The risk is that the quota still binds at heavy usage even after compression — track rate-limit hits for two weeks before committing.
+- **API-only (recommended when mid-tier capability suffices):** OpenCode or Cline plus a mid-tier paid model (e.g. DeepSeek-V4-Pro) via OpenRouter, no subscription. Estimated cost: EUR 55-135/month at a heavy usage rate, before compression savings.
+
+Do not run both lanes at once — that doubles subscriptions and reintroduces the mid-session switching this report argues against.
+
+**Recommendation:** Pick one lane and one primary model. Use Claude Code as your tool if you choose the subscription-anchored lane (best agent quality, per the table above); use OpenCode or Cline if you choose the API-only lane (free, any model). Either way, use OpenRouter as your provider for anything outside the subscription, and treat 9Router as optional — install it only if you specifically need automatic fallback across providers.
 
 ---
 
@@ -360,12 +381,10 @@ OpenRouter scores highest because it has the widest model selection, transparent
 
 **Conversation management.** Start a new conversation for each distinct task. Long conversations degrade model performance and waste tokens re-loading old context. If you have been chatting for more than 20 minutes, start fresh.
 
-**Model rotation.** Rotate between free models every few requests. This avoids rate limits and exposes you to different model strengths. DeepSeek-V4-Flash for coding, Nemotron for reviews, Gemma for variety.
-
 **Prompt templates.** Write reusable prompts for common tasks: code review, bug fix, test generation, plan writing. Store them in your project. A good template saves 20-30 tokens per request and produces more consistent output.
 
-**Monitor your spending.** Check your OpenRouter dashboard weekly. If you are spending more than USD 20 per month on paid models, you are escalating too often. Free models should handle 80 per cent of work.
+**Monitor your spending.** Check your OpenRouter dashboard (or Claude Console) weekly against the lane budget you picked — EUR 24-35/month subscription-anchored, EUR 55-135/month API-only. If you're consistently over budget, check first whether you're switching models mid-session (the single biggest silent cost) before assuming you need a cheaper primary.
 
 ---
 
-*Sources: OpenRouter pricing (June 2026), MiMo Code credit documentation, independent model benchmarks (LiveCodeBench, Coding Index, Agentic Index). Benchmark figures are approximate and sourced from public leaderboards at time of writing. Costs are in the currency quoted by each provider; EUR 1 is approximately USD 1.10 at time of writing.*
+*Sources: OpenRouter pricing and rate limits (verified July 2026), Anthropic API pricing (July 2026), MiMo Code credit documentation, independent model benchmarks (LiveCodeBench, Coding Index, Agentic Index). Benchmark figures are approximate and sourced from public leaderboards at time of writing. Costs are in the currency quoted by each provider; EUR 1 is approximately USD 1.10 at time of writing. Updated 2026-07-20: corrected the DeepSeek-V4-Flash free listing (no longer served by any provider — see `phases/phase-002-model-consolidation-token-efficiency.md`), the Caveman install command, and the 9Router star count; reframed model cascading as an escalation exception rather than a default workflow.*
