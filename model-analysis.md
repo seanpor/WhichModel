@@ -118,7 +118,7 @@ plus Big Pickle:
 | MiMo-V2.5 Free | `mimo-v2.5-free` | **Confirmed live.** Promotional. |
 | North Mini Code Free | `north-mini-code-free` | **Confirmed live.** Cohere-based. Data retained. Do NOT submit confidential data. |
 | Nemotron 3 Ultra Free | `nemotron-3-ultra-free` | **Confirmed live.** NVIDIA trial. Data logged for improvement. |
-| Hunyuan 3 Free | `hy3-free` | **New, not in the original list.** Confirmed live on both Zen and OpenRouter (`tencent/hy3:free`). |
+| ~~Hunyuan 3 Free~~ | `hy3-free` | **Dead as of 2026-07-22** — live on 2026-07-20, gone 2 days later on both Zen and OpenRouter. Kept as a line item specifically to illustrate the churn: this is why "confirmed live" needs a timestamp and re-checking, not a one-time verification. Never route work here. |
 
 **Unverified, flag before relying on it:** third-party blogs claim Zen's free tier grants
 "100 requests/day with access to all Zen models" — i.e. possibly including frontier paid
@@ -143,13 +143,21 @@ models have rotated out). Confirmed-live free models:
 | Poolside Laguna XS 2.1 | `poolside/laguna-xs-2.1:free` | 262K | **Confirmed live**, but ID changed from the `laguna-xs.2:free` this doc originally listed |
 | Cohere North Mini Code | `cohere/north-mini-code:free` | 256K | **Confirmed live.** Code-focused |
 | OpenAI gpt-oss-20b | `openai/gpt-oss-20b:free` | 131K | **Confirmed live**, but replaces the `gpt-oss-120b:free` this doc originally listed — smaller model, re-evaluate quality before relying on it |
-| Tencent Hunyuan 3 | `tencent/hy3:free` | — | **New, confirmed live.** Not previously catalogued |
+| Poolside Laguna S 2.1 | `poolside/laguna-s-2.1:free` | — | **New as of 2026-07-22**, not present in the 2026-07-20 check. Untested — free rosters churn in both directions. |
 
-**No longer served (confirmed dead 2026-07-20):** `deepseek/deepseek-v4-flash:free`,
+**No longer served (confirmed dead 2026-07-20, re-confirmed 2026-07-22):** `deepseek/deepseek-v4-flash:free`,
 `qwen/qwen3-coder:free`, `qwen/qwen3-next-80b-a3b-instruct:free`,
 `nousresearch/hermes-3-llama-3.1-405b:free`, `meta-llama/llama-3.3-70b-instruct:free`,
-`openai/gpt-oss-120b:free`. Do not route work to these IDs — requests will fail or silently
-fall back to a different model than intended.
+`openai/gpt-oss-120b:free`. **Also dead as of 2026-07-22 (was live 2026-07-20):**
+`tencent/hy3:free`. Do not route work to these IDs — requests will fail or silently fall back
+to a different model than intended.
+
+**Stability check, 2026-07-22 (2 days after the previous verification):** `nvidia/nemotron-3-ultra-550b-a55b:free`
+— the model actually configured as Sean's primary — is still live, unaffected by the churn
+above. The models that appeared/disappeared in two days (`hy3:free` gone, `laguna-s-2.1:free`
+new) were both niche additions, not the established, widely-used flagship. This is the
+practical argument for the "pick a large, established model" rule over chasing whatever's
+newest on the list.
 
 ### Kimi / Moonshot — confirmed no free tier anywhere
 
